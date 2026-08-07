@@ -1,16 +1,61 @@
-# AI Workspace
-
-A professional desktop application for seamlessly navigating, managing, and comparing multiple AI services in one unified workspace.
-
 <div align="center">
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Electron](https://img.shields.io/badge/Electron-43.3.0-9feaf9?logo=electron&logoColor=fff)](https://www.electronjs.org)
-[![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=fff)](https://react.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178c6?logo=typescript&logoColor=fff)](https://www.typescriptlang.org)
-[![Windows](https://img.shields.io/badge/Windows-Supported-0078d4?logo=windows)](https://www.microsoft.com/windows)
+# 🚀 AI Workspace
+
+<p align="center">
+  <strong>A professional desktop application for seamlessly managing and comparing multiple AI services in one unified workspace.</strong>
+</p>
+
+![AI Workspace](https://img.shields.io/badge/AI%20Workspace-v1.0.0-blue?style=for-the-badge&logo=rocket)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178c6?style=for-the-badge&logo=typescript&logoColor=fff)
+![React](https://img.shields.io/badge/React-19-61dafb?style=for-the-badge&logo=react&logoColor=fff)
+![Electron](https://img.shields.io/badge/Electron-43.3.0-9feaf9?style=for-the-badge&logo=electron&logoColor=000)
+![Windows](https://img.shields.io/badge/Windows-10+-0078d4?style=for-the-badge&logo=windows&logoColor=fff)
+![License MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)
+![0 Vulnerabilities](https://img.shields.io/badge/Security-0%20Vulnerabilities-green?style=for-the-badge)
+
+<br/>
+
+**[Features](#-features) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Contributing](#-contributing) • [License](#-license)**
 
 </div>
+
+---
+
+## ✨ Highlights
+
+<table>
+  <tr>
+    <td align="center">
+      <h3>🎯 8 AI Providers</h3>
+      ChatGPT, Claude, Perplexity, Gemini, Z.AI, DeepSeek, Kimi & Mistral
+    </td>
+    <td align="center">
+      <h3>🔄 Broadcast Prompts</h3>
+      Send to multiple services simultaneously & compare responses
+    </td>
+    <td align="center">
+      <h3>📊 Usage Analytics</h3>
+      Local 7/30-day tracking with visual dashboards
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <h3>🔐 Enterprise Security</h3>
+      Electron hardening, context isolation, CSP
+    </td>
+    <td align="center">
+      <h3>🛡️ Sensitive Data Detection</h3>
+      PII/credentials alerts before sending
+    </td>
+    <td align="center">
+      <h3>♿ Accessibility First</h3>
+      WCAG 2.1 AA, dark/light/high-contrast modes
+    </td>
+  </tr>
+</table>
+
+---
 
 ## 🎯 Overview
 
@@ -27,79 +72,85 @@ A professional desktop application for seamlessly navigating, managing, and comp
 - 🤖 **Kimi** – Conversational AI assistant
 - 🌟 **Mistral Vibe** – Fast generative AI
 
-## ✨ Features
+## ✨ Key Features
 
-### Core Capabilities
-- **Multi-Account Management** – Maintain isolated sessions for each AI service; log in once and stay logged in across sessions
-- **Account Switching** – Instantly switch between different accounts and providers
-- **Prompt Broadcasting** – Send the same prompt to multiple AI services simultaneously (Standard or Deep Research modes)
-- **Sensitive Data Alerts** – Locally inspect direct and broadcast prompts for common PII, financial data, credentials, and confidential-business markers before sending
-- **Local Usage Analytics** – Track which AI services you use most with 7-day and 30-day summaries (completely local, no data sharing)
-- **Provider Icons** – Official brand icons for all 8 AI services
+<div align="center">
 
-### Security & Privacy
-- **Isolated Chromium Partitions** – Each account uses dedicated persistent sessions; no cross-account cookie leakage
-- **Electron Hardening** – Context isolation, sandbox mode, restricted external URLs (HTTPS only)
-- **Service-Specific Auth Allowlists** – Granular control over trusted authentication domains
-- **Zero External Analytics** – All data stays on your device; no telemetry or tracking
-- **Per-Provider Protection Controls** – Enable alerts for every provider at once or configure each tool independently from Settings
-- **Security Audit Verified** – Independent security review with zero vulnerabilities
+### 🎮 Core Features
+| Feature | Description |
+|---------|-------------|
+| 🔀 **Multi-Account Switching** | Instant account switching across all 8 providers with persistent sessions |
+| 📢 **Broadcast Prompts** | Send identical prompts to multiple services simultaneously |
+| 📊 **Usage Analytics** | Track provider usage with 7/30-day reports & visual dashboards |
+| 🛡️ **Sensitive Data Detection** | Real-time PII/credentials detection (email, phone, card numbers, etc.) |
+| 🎨 **Accessibility** | Full WCAG 2.1 AA compliance with 4 theme modes |
+| 🔒 **Zero Telemetry** | All data stored locally—zero cloud sync, zero external analytics |
 
-### Accessibility & Localization
-- **Dark/Light/High-Contrast Modes** – Full theme support with persistent user preferences
-- **Text Scaling** – Adjustable text size for improved readability
-- **Reduced Motion** – Respect for users who prefer reduced animations
-- **Keyboard Navigation** – Complete keyboard support; no mouse required
-- **Focus Trapping** – Accessible dialogs with proper focus management
-- **English Localization** – Complete English UI with professional terminology
+### 🔐 Security Features
+- **Isolated Chromium Partitions** – Each account uses dedicated persistent sessions
+- **Electron Hardening** – Context isolation, sandbox mode, CSP enforcement
+- **Service-Specific Auth Allowlists** – Granular control over trusted domains
+- **Per-Provider Protection** – Enable alerts for all or configure individually
+- **Security Audit Verified** – 0 vulnerabilities, independently reviewed
 
-### User Experience
-- **Guided Onboarding** – Three-step setup flow for new users
-- **Settings Dashboard** – Preferences tab for themes, accessibility, and reset options
-- **Usage Dashboard** – Visual breakdown of AI service usage over time
-- **Broadcast Composer** – Intuitive multi-provider prompt interface
+### 📱 Accessibility
+- **Dark/Light/High-Contrast Modes** – Full theme support
+- **Text Scaling** – Adjustable font sizes
+- **Keyboard Navigation** – Complete keyboard support
+- **Focus Management** – Accessible dialogs with proper focus handling
+- **Reduced Motion** – Respect for users preferring reduced animations
+
+</div>
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### 📋 Prerequisites
+
 - **Node.js** 18+ and npm 9+
-- **Windows 10+** (macOS/Linux builds untested but possible)
+- **Windows 10+** (macOS/Linux possible but untested)
 
-### Installation
+### ⚡ Installation & Development
 
-1. Clone the repository:
+<details>
+<summary><strong>For Users (Packaged App)</strong></summary>
+
+1. Download the latest **Windows installer** from [Releases](https://github.com/BlockFrame/AI-workspace/releases)
+2. Run the installer
+3. Launch "AI Workspace" from Start Menu
+4. Add your first account and start comparing AI services!
+
+</details>
+
+<details>
+<summary><strong>For Developers (From Source)</strong></summary>
+
 ```bash
-git clone https://github.com/blockframe/ai-workspace.git
-cd ai-workspace
-```
+# 1. Clone the repository
+git clone https://github.com/BlockFrame/AI-workspace.git
+cd AI-workspace
 
-2. Install dependencies:
-```bash
+# 2. Install dependencies
 npm install
-```
 
-3. Run in development mode:
-```bash
+# 3. Run in development mode (with hot reload)
 npm run dev
-```
 
-The application will open automatically. You can now:
-- Add accounts for each AI service
-- Switch between providers
-- Use the Broadcast feature to send prompts to multiple services
-- Monitor usage in the Usage dashboard
+# The app opens automatically. Try:
+# - Add accounts for each AI service
+# - Switch between providers
+# - Test Broadcast feature
+# - Monitor Usage dashboard
 
-### Building for Production
-
-```bash
-# TypeScript type check + build
+# 4. Build for production
 npm run build
 
-# Package as Windows executable
+# 5. Create Windows installer
 npm run package
+
+# Output: release/AI-workspace-1.0.0.exe
 ```
 
-The packaged installer will be available in the `release/` directory.
+</details>
 
 ## 📁 Project Structure
 
@@ -138,255 +189,255 @@ ai-workspace/
 └── .gitignore                  # Git exclusions (Node, build artifacts, OS files)
 ```
 
-### Key Files Explained
+## 🛠️ Development
+
+### 📦 Build Scripts
+
+<table>
+<tr><th>Command</th><th>Description</th></tr>
+<tr><td><code>npm run dev</code></td><td>⚡ Development mode with hot reload (Vite + Electron)</td></tr>
+<tr><td><code>npm run typecheck</code></td><td>✅ TypeScript type validation only</td></tr>
+<tr><td><code>npm run build</code></td><td>🔨 Production build (main + renderer)</td></tr>
+<tr><td><code>npm run build:main</code></td><td>🔨 Build Electron main process only</td></tr>
+<tr><td><code>npm run build:renderer</code></td><td>🔨 Build React UI only (Vite)</td></tr>
+<tr><td><code>npm start</code></td><td>🚀 Start packaged app</td></tr>
+<tr><td><code>npm run package</code></td><td>📦 Create Windows installer (.exe)</td></tr>
+</table>
+
+### 🏗️ Project Architecture
+
+<div align="center">
+
+```
+ai-workspace/
+├── 📁 electron/              Electron main process
+│   ├── main.ts              (~1300 lines) App lifecycle, IPC, sessions
+│   └── preload.ts           Secure renderer bridge
+│
+├── 📁 src/
+│   ├── renderer/            React UI (Vite)
+│   │   ├── App.tsx          (~1400 lines) Complete UI + state
+│   │   ├── styles.css       (~1400 lines) Themes + accessibility
+│   │   └── assets/          SVG icons for all 8 providers
+│   │
+│   └── shared/
+│       ├── types.ts         TypeScript interfaces
+│       └── services.ts      Service registry
+│
+├── 📁 .github/
+│   ├── workflows/           CI/CD automation
+│   └── templates/           Issue & PR templates
+│
+└── 📄 Configuration
+    ├── package.json         Dependencies & build config
+    ├── tsconfig.json        TypeScript root config
+    └── vite.config.ts       Vite + CSP settings
+```
+
+</div>
+
+### 🔍 Key Files
 
 | File | Purpose | Size |
 |------|---------|------|
-| `electron/main.ts` | Core Electron lifecycle, session/partition management, IPC handlers, broadcast adapters | ~1300 lines |
-| `src/renderer/App.tsx` | Complete React UI—onboarding, sidebar, accounts, broadcast composer, settings, usage dashboard | ~1400 lines |
-| `src/shared/types.ts` | TypeScript interfaces for ServiceId, AccountProfile, UsageSummary, BroadcastRequest/Result, DesktopApi | ~200 lines |
-| `src/shared/services.ts` | Service registry with metadata (id, name, homeUrl, trustedHosts) for all 8 providers | ~100 lines |
-| `src/renderer/styles.css` | Complete styling with light/dark/high-contrast themes, accessibility features, responsive layout | ~1400 lines |
-
-## 🔧 Development
-
-### Scripts
-
-```bash
-# Development mode with hot reload
-npm run dev
-
-# Type checking only
-npm run typecheck
-
-# Build main + renderer (production)
-npm run build
-
-# Build main process
-npm run build:main
-
-# Build renderer (Vite)
-npm run build:renderer
-
-# Start packaged app
-npm start
-
-# Package as installer
-npm run package
-```
-
-### Development Workflow
-
-1. **Start the dev server:**
-   ```bash
-   npm run dev
-   ```
-   This runs Vite (port 5173), TypeScript watcher, and Electron concurrently.
-
-2. **Make changes:**
-   - Modify `electron/main.ts` → Auto-recompiled, app restarts
-   - Modify `src/renderer/` → Hot-module reload in dev window
-   - Modify `src/shared/` → Both sides recompile
-
-3. **Test your changes:**
-   - Use browser DevTools: `Ctrl+Shift+I`
-   - Check console for errors
-   - Test all 8 providers in accounts list
-
-4. **Build for release:**
-   ```bash
-   npm run build && npm run package
-   ```
-
-### Understanding the Architecture
-
-#### Electron Main Process (`electron/main.ts`)
-- Manages window lifecycle and IPC
-- Stores accounts in `~/.ai-workspace/accounts.json` (encrypted)
-- Stores usage metrics in `~/.ai-workspace/usage.json`
-- Creates isolated Chromium partitions for each account
-- Implements broadcast adapters for prompt injection
-- Enforces security policies (CSP, HTTPS, navigation guards)
-
-#### React Renderer (`src/renderer/App.tsx`)
-- Single-page application with state management
-- Components: Onboarding, Sidebar, Account List, Broadcast Composer, Settings, Usage Dashboard
-- Communicates with main process via typed IPC bridge
-
-#### Type Safety (`src/shared/types.ts`)
-- Defines `DesktopApi` contract for all IPC channels
-- Ensures type safety across process boundary
-- Single source of truth for data structures
-
-### Security Considerations
-
-**Account Isolation:**
-- Each account uses a dedicated Chromium session: `persist:ai-workspace-{serviceId}-{uuid}`
-- Sessions are independent; cookies and local storage never leak between accounts
-- Sessions persist across app restarts
-
-**Network Security:**
-- Only HTTPS external URLs allowed
-- Service-specific auth domain allowlists (see `AUTH_HOSTS_BY_SERVICE` in main.ts)
-- Navigation and popup blocking prevents unexpected redirects
-
-**Broadcast Safety:**
-- Prompts injected via `document.execCommand('insertText')` only
-- No arbitrary code execution in iframes
-- Deep Research mode availability checked before use; unsupported mode reported explicitly
-- Sensitive-data checks run locally before submission and show only masked excerpts
-
-**Sensitive Data Alerts:**
-- Enabled by default for all providers and configurable globally or per tool
-- Protects both prompts typed directly into provider pages and Broadcast prompts
-- Detects common patterns, including email addresses, phone numbers, tax identifiers, IBANs, valid payment card numbers, API keys, tokens, private keys, passwords, and confidential-business labels
-- Alerts are advisory: users must still review context because automated detection can produce false positives or miss context-specific sensitive data
-
-**Electron Hardening (v43.3.0):**
-- `contextIsolation: true` – Main and renderer processes isolated
-- `sandbox: true` – Renderer process sandboxed
-- `nodeIntegration: false` – No Node.js in renderer
-- `webSecurity: true` – Same-origin policy enforced
-- CSP headers for development and production
+| `electron/main.ts` | Core lifecycle, IPC, sessions, broadcast adapters | 1,300 lines |
+| `src/renderer/App.tsx` | React UI (onboarding, sidebar, broadcast, usage) | 1,400 lines |
+| `src/renderer/styles.css` | Complete styling + 4 themes + accessibility | 1,400 lines |
+| `src/shared/types.ts` | TypeScript interfaces for IPC contract | 200 lines |
+| `src/shared/services.ts` | Service registry (8 providers metadata) | 100 lines |
 
 ## 📊 Usage Analytics
 
-Usage metrics are stored **locally** in `~/.ai-workspace/usage.json`:
+All usage metrics are stored **locally** in `~/.ai-workspace/usage.json`:
+
+<details>
+<summary><strong>View Sample Data</strong></summary>
 
 ```json
 {
   "chatgpt": {
-    "2024-12-07": { "openCount": 2, "switchCount": 1, "focusedTime": 1860 }
+    "2026-08-07": { "openCount": 2, "switchCount": 1, "focusedTime": 1860 }
   },
   "claude": {
-    "2024-12-07": { "openCount": 1, "switchCount": 0, "focusedTime": 300 }
+    "2026-08-07": { "openCount": 1, "switchCount": 0, "focusedTime": 300 }
   }
 }
 ```
 
-**Tracked metrics:**
+**Tracked Metrics:**
 - `openCount` – Times the service was opened
-- `switchCount` – Times you switched to this service
-- `focusedTime` – Seconds the service window was active and visible (not obstructed by Settings/dialogs)
+- `switchCount` – Times you switched to this service  
+- `focusedTime` – Seconds the window was active and visible
 
-**What's NOT tracked:**
-- Token usage or API costs (no access to provider billing APIs)
-- Conversation content (no data collection)
-- External telemetry (zero third-party analytics)
-- Network requests (all processing is local)
+**NOT Tracked (Privacy First):**
+- ❌ Token usage or API costs
+- ❌ Conversation content
+- ❌ External telemetry
+- ❌ Network requests
+
+</details>
 
 ## 🔐 Security & Privacy
 
-### Data Location
-- **Accounts:** Stored locally in `~/.ai-workspace/accounts.json`
-- **Usage:** Stored locally in `~/.ai-workspace/usage.json`
-- **No cloud sync:** All data remains on your device
-- **No telemetry:** Zero external analytics
+### 🏠 Data Location
+| Category | Storage | Cloud Sync | Telemetry |
+|----------|---------|-----------|-----------|
+| **Accounts** | `~/.ai-workspace/accounts.json` | ❌ None | ❌ Zero |
+| **Usage** | `~/.ai-workspace/usage.json` | ❌ None | ❌ Zero |
+| **Settings** | `~/.ai-workspace/config.json` | ❌ None | ❌ Zero |
+| **Conversations** | Provider servers only | ✅ Provider manages | ✅ Provider only |
 
-### Authentication
-- Each AI provider's official login page is loaded in an isolated partition
-- Credentials are managed by each provider (you control them)
-- App never sees or stores credentials
-- OAuth tokens/cookies stored in isolated persistent sessions
+### 🔐 Authentication
+- Each provider's login page loads in an isolated partition
+- Credentials managed by provider (you control them)
+- App never sees or stores passwords/tokens
+- OAuth cookies stored in isolated persistent sessions
 
-### Permissions
-- Desktop files access: Only `~/.ai-workspace/` directory
-- Network: HTTPS only, service-specific domains
-- Window management: Single-window model, no external processes
-- Clipboard: Not accessed (manual copy/paste only)
+### 🚫 Permissions
+- **Desktop files:** Only `~/.ai-workspace/` directory
+- **Network:** HTTPS only, service-specific domains
+- **Window:** Single-window model, no external processes
+- **Clipboard:** Manual only (no programmatic access)
 
-### Security Audit Results
-✅ Electron 43.3.0 hardening verified
-✅ Zero npm vulnerabilities
-✅ Navigation and popup guards effective
-✅ Isolated sessions prevent cross-account leakage
-✅ CSP enforced in production
+### ✅ Security Audit
+- ✅ Electron 43.3.0 hardening verified
+- ✅ Zero npm vulnerabilities (audit: `npm audit`)
+- ✅ Navigation and popup guards effective
+- ✅ Isolated sessions prevent cross-account leakage
+- ✅ CSP enforced in production
 
-See [SECURITY.md](SECURITY.md) for vulnerability disclosure.
+📄 See [SECURITY.md](SECURITY.md) for detailed vulnerability disclosure policy.
+
+---
 
 ## 🌍 Platform Support
 
 | Platform | Status | Notes |
 |----------|--------|-------|
-| Windows | ✅ Fully supported | Tested on Windows 10+ |
-| macOS | ⚠️ Possible but untested | Requires dmg/zip build config |
-| Linux | ⚠️ Possible but untested | Requires AppImage/deb build config |
+| **Windows** | ✅ **Fully Supported** | Tested on Windows 10+, installer included |
+| **macOS** | ⚠️ Possible | Requires dmg/zip build config (untested) |
+| **Linux** | ⚠️ Possible | Requires AppImage/deb config (untested) |
 
-Currently, only **Windows packaging** is tested and included in releases. Contributions for macOS/Linux builds welcome.
+Currently, **Windows packaging** is tested and included in releases. macOS/Linux contributions welcome!
 
-## 📝 Licensing & Contributing
+---
 
-This project is licensed under the **MIT License** – see [LICENSE](LICENSE) for details.
+## 📚 Documentation
 
-We welcome contributions! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on:
-- Code style and conventions
+<div align="center">
+
+| Document | Purpose |
+|----------|---------|
+| **[README.md](README.md)** | Project overview & quick start |
+| **[ARCHITECTURE.md](ARCHITECTURE.md)** | Technical design & deep dive |
+| **[SECURITY.md](SECURITY.md)** | Security policy & vulnerability reporting |
+| **[CONTRIBUTING.md](CONTRIBUTING.md)** | Development guidelines & commit conventions |
+| **[CHANGELOG.md](CHANGELOG.md)** | Release notes & version history |
+| **[LICENSE](LICENSE)** | MIT License |
+
+</div>
+
+## ❓ FAQ
+
+<details>
+<summary><strong>Q: Is my data shared with anyone?</strong></summary>
+<strong>A:</strong> No. All data (accounts, usage, settings) is stored locally on your device. Zero telemetry, zero cloud sync.
+</details>
+
+<details>
+<summary><strong>Q: Can I use multiple accounts with the same AI provider?</strong></summary>
+<strong>A:</strong> Yes! Each account has its own isolated session. Switch between them instantly with zero cookie leakage.
+</details>
+
+<details>
+<summary><strong>Q: Does the app work offline?</strong></summary>
+<strong>A:</strong> No, you need internet to access the AI services. The app itself is offline-capable but won't load providers without connectivity.
+</details>
+
+<details>
+<summary><strong>Q: Can I broadcast to just some providers?</strong></summary>
+<strong>A:</strong> Yes! Select which accounts to include before sending. Only selected providers receive the prompt.
+</details>
+
+<details>
+<summary><strong>Q: What if a provider updates but isn't detected?</strong></summary>
+<strong>A:</strong> The app will report "Unsupported" rather than fail silently. See [CONTRIBUTING.md](CONTRIBUTING.md) to help update adapters.
+</details>
+
+<details>
+<summary><strong>Q: How accurate is usage tracking?</strong></summary>
+<strong>A:</strong> Tracks active time when (1) window is focused, (2) account is active, (3) provider is visible. Useful for trend analysis but approximate.
+</details>
+
+<details>
+<summary><strong>Q: Can I add more AI providers?</strong></summary>
+<strong>A:</strong> Absolutely! See [CONTRIBUTING.md](CONTRIBUTING.md). Process: register service → add auth domains → create broadcast adapter.
+</details>
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Here's how to get started:
+
+1. **Fork** the repository
+2. **Create** a feature branch: `git checkout -b feature/amazing-feature`
+3. **Commit** changes: `git commit -m "Add amazing feature"`
+4. **Push** to branch: `git push origin feature/amazing-feature`
+5. **Open** a Pull Request
+
+📖 See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines on:
+- Code style & TypeScript conventions
 - Commit message format
-- Pull request process
 - Testing requirements
+- PR review process
+
+---
 
 ## 🐛 Reporting Issues
 
 Found a bug or have a feature request?
 
-1. **Security Issues:** Please follow [SECURITY.md](SECURITY.md) for responsible disclosure
-2. **Bug Reports:** Use the [Bug Report](https://github.com/blockframe/ai-workspace/issues/new?template=bug_report.md) template
-3. **Feature Requests:** Use the [Feature Request](https://github.com/blockframe/ai-workspace/issues/new?template=feature_request.md) template
-
-## 📚 Documentation
-
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** – How to contribute
-- **[SECURITY.md](SECURITY.md)** – Security policy and vulnerability reporting
-- **[CHANGELOG.md](CHANGELOG.md)** – Release notes and version history
-- **[LICENSE](LICENSE)** – MIT License
-
-## 🎓 FAQ
-
-### Q: Is my data shared with anyone?
-**A:** No. All data (accounts, usage, settings) is stored locally on your device. Zero telemetry.
-
-### Q: Can I use multiple accounts with the same AI provider?
-**A:** Yes! Each account has its own isolated session. Switch between them instantly.
-
-### Q: Does the app work offline?
-**A:** No, you need internet to access the AI services. The app itself is offline-capable but won't load the providers without connectivity.
-
-### Q: Can I broadcast to just some providers?
-**A:** Yes, you select which accounts to include before sending. Only selected accounts receive the prompt.
-
-### Q: What if a provider adds Deep Research but it's not detected?
-**A:** The app will report "Unsupported" rather than silently falling back to standard mode. Check the broadcast result and see [CONTRIBUTING.md](CONTRIBUTING.md) to help update the adapter.
-
-### Q: How accurate is the usage tracking?
-**A:** Usage tracks active time only when (1) the app window is focused, (2) the account is active, and (3) the provider window is visible (not covered by Settings/dialogs). It's approximate but useful for trend analysis.
-
-### Q: Can you add more AI providers?
-**A:** Absolutely! See [CONTRIBUTING.md](CONTRIBUTING.md) for adding new services. The process is straightforward: register the service, add auth domains, create a broadcast adapter.
-
-## 🤝 Community
-
-- 📧 **Issues & Discussions:** Use GitHub Issues and Discussions
-- 🔄 **Pull Requests:** Welcome for bug fixes, features, and documentation
-- ⭐ **Star this repo** if you find it useful!
-
-## 📄 Citation
-
-If you use AI Workspace in your research or projects, please cite:
-
-```bibtex
-@software{ai_workspace_2024,
-  title={AI Workspace: A Desktop Application for Multi-Provider AI Aggregation},
-  author={blockframe},
-  year={2024},
-  url={https://github.com/blockframe/ai-workspace}
-}
-```
-
-## 📄 Disclaimer
-
-AI Workspace is an independent project and is **not affiliated** with OpenAI, Anthropic, Google, Mistral AI, or any other AI service provider. It simply provides a unified interface to access their public web applications.
+| Issue Type | Action |
+|-----------|--------|
+| **🔒 Security Issue** | Follow [SECURITY.md](SECURITY.md) for responsible disclosure |
+| **🐛 Bug Report** | Use [Bug Report Template](https://github.com/BlockFrame/AI-workspace/issues/new?template=bug_report.md) |
+| **✨ Feature Request** | Use [Feature Request Template](https://github.com/BlockFrame/AI-workspace/issues/new?template=feature_request.md) |
 
 ---
 
+## 📜 License & Citation
+
+This project is licensed under the **[MIT License](LICENSE)** – free for personal, commercial, and research use.
+
+If you use AI Workspace in research or projects, please cite:
+
+```bibtex
+@software{ai_workspace_2026,
+  title={AI Workspace: A Desktop Application for Multi-Provider AI Aggregation},
+  author={BlockFrame},
+  year={2026},
+  url={https://github.com/BlockFrame/AI-workspace}
+}
+```
+
+---
+
+## ⚖️ Disclaimer
+
+**AI Workspace is an independent project** and is **not affiliated** with OpenAI, Anthropic, Google, Mistral AI, or any other AI service provider. It provides a unified interface to access their public web applications.
+
+---
+
+<div align="center">
+
+### 🌟 Enjoyed this project?
+Leave a ⭐ on GitHub and share with friends!
+
+[Star Repository](https://github.com/BlockFrame/AI-workspace) • [Report Issue](https://github.com/BlockFrame/AI-workspace/issues) • [View Releases](https://github.com/BlockFrame/AI-workspace/releases)
+
 **Made with ❤️ by the AI Workspace community**
 
-*Last updated: December 2024*
+*Last updated: August 2026*
+
+</div>
