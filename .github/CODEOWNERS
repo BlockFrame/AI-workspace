@@ -1,0 +1,19 @@
+# GitHub CODEOWNERS
+# Automatically assign reviewers for pull requests
+
+# Default owner(s) for all files
+* @blockframe
+
+# Specific ownership for critical areas
+electron/main.ts @blockframe
+electron/preload.ts @blockframe
+src/renderer/App.tsx @blockframe
+src/shared/ @blockframe
+SECURITY.md @blockframe
+.github/workflows/ @blockframe
+package.json @blockframe
+
+# Documentation
+README.md @blockframe
+CONTRIBUTING.md @blockframe
+CHANGELOG.md @blockframe

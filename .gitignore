@@ -1,0 +1,62 @@
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+.pnpm-debug.log
+*.log
+
+# Build outputs
+dist/
+dist-electron/
+build/
+*.tsbuildinfo
+
+# Release/packaging
+release/
+release-*/
+*.dmg
+*.AppImage
+*.deb
+*.exe
+*.msi
+*.nsis
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Testing
+coverage/
+.nyc_output/
+.mocha_output/
+
+# Temporary
+*.tmp
+*.temp
+.cache/
+temp/
+tmp/
+
+# Electron user data (local, should not be committed)
+# ~/.ai-workspace/ (on user's machine)
+user-data/
