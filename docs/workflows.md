@@ -38,9 +38,9 @@ metadata; it does not delete the provider account.
 ### Google sign-in inside Perplexity
 
 Google can block OAuth in embedded user agents. AI Workspace keeps **Continue with Google**
-available and applies a consistent browser identity to provider views and their authentication
-popups. If Google still rejects the attempt, enter the same Gmail address in Perplexity's email
-field and follow its verification link instead.
+available and uses the same native isolated Chromium session for provider views and their
+authentication popups. If Google still rejects the attempt, enter the same Gmail address in
+Perplexity's email field and follow its verification link instead.
 
 Opening Google in the system browser is not enough because that browser's cookies cannot be
 copied safely into the isolated Electron session.

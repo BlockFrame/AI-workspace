@@ -244,9 +244,9 @@ view. This prevents blank regions or overlap after application zoom.
 ## Authentication boundary
 
 Provider sign-in happens on official provider or allowlisted authentication domains. Provider
-views and their child authentication windows share one consistent Chromium user agent. Some OAuth
-providers can still reject embedded user agents by policy; AI Workspace does not import external
-cookies or weaken those controls.
+views and their child authentication windows share the same isolated Chromium session without
+impersonating an external browser. Some OAuth providers can still reject embedded user agents by
+policy; AI Workspace does not import external cookies or weaken those controls.
 
 Perplexity displays proactive fallback guidance without disabling **Continue with Google**. A true
 external-browser OAuth return would require an official third-party desktop flow from Perplexity.

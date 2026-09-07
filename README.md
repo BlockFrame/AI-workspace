@@ -177,8 +177,9 @@ credentials and are intentionally not configured in the repository.
 ## Sign-in limitations
 
 Google can reject OAuth inside embedded desktop browsers. AI Workspace keeps the Google option
-available and applies the same browser identity to provider views and authentication popups. If
-Google still rejects the flow, use Perplexity's email verification with the same Gmail address.
+available and uses its native isolated Chromium session consistently for provider views and
+authentication popups. If Google still rejects the flow, use Perplexity's email verification with
+the same Gmail address.
 
 The same error in a normal Chrome/Edge window may instead indicate a corporate firewall, proxy,
 security product, or Google Workspace policy. An external browser session cannot currently be

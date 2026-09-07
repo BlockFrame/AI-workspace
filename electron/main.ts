@@ -1693,23 +1693,11 @@ function partitionFor(account: AccountProfile): string {
   return `persist:ai-workspace-${account.serviceId}-${account.id}`;
 }
 
-function browserUserAgent(): string {
-  const platformToken =
-    process.platform === "darwin"
-      ? "Macintosh; Intel Mac OS X 10_15_7"
-      : process.platform === "linux"
-        ? "X11; Linux x86_64"
-        : "Windows NT 10.0; Win64; x64";
-  return `Mozilla/5.0 (${platformToken}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${process.versions.chrome} Safari/537.36`;
-}
-
 function configurePartition(partition: string, serviceId: ServiceId): void {
   if (configuredPartitions.has(partition)) {
     return;
   }
-
   const isolatedSession = session.fromPartition(partition);
-  isolatedSession.setUserAgent(browserUserAgent());
   const allowedPermissions = new Set(["notifications", "clipboard-read"]);
 
   isolatedSession.setPermissionCheckHandler((_webContents, permission, requestingOrigin) => {
@@ -1793,9 +1781,7 @@ function attachNavigationGuards(managedView: ManagedView): void {
       }
     };
   });
-
   contents.on("did-create-window", (childWindow) => {
-    childWindow.webContents.setUserAgent(browserUserAgent());
     attachPopupNavigationGuards(childWindow.webContents, managedView);
   });
 
@@ -1855,9 +1841,7 @@ function attachPopupNavigationGuards(
       }
     };
   });
-
   contents.on("did-create-window", (childWindow) => {
-    childWindow.webContents.setUserAgent(browserUserAgent());
     attachPopupNavigationGuards(childWindow.webContents, managedView);
   });
 }
@@ -1876,7 +1860,6 @@ function createManagedView(account: AccountProfile): ManagedView {
       spellcheck: true
     }
   });
-  view.webContents.setUserAgent(browserUserAgent());
 
   const managedView: ManagedView = {
     accountId: account.id,

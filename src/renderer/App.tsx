@@ -1439,7 +1439,33 @@ export default function App() {
           </button>
         </div>
 
-        {isAccountListOpen ? (
+        {isAccountListOpen && isSidebarCollapsed ? (
+          <nav className="collapsed-account-list" aria-label="Connected AI accounts">
+            {sortAccounts(accounts).map((account) => (
+              <button
+                aria-current={selectedAccountId === account.id ? "page" : undefined}
+                className={selectedAccountId === account.id ? "is-active" : ""}
+                key={account.id}
+                onClick={() => void selectAccount(account.id)}
+                title={`${account.label} · ${SERVICE_BY_ID.get(account.serviceId)?.name ?? account.serviceId}`}
+                type="button"
+              >
+                <ServiceLogo serviceId={account.serviceId} size="small" />
+              </button>
+            ))}
+            {accounts.length === 0 ? (
+              <button
+                aria-label="Add AI account"
+                className="collapsed-account-add"
+                onClick={() => openConnectDialog()}
+                title="Add AI account"
+                type="button"
+              >
+                <Icon name="plus" size={17} />
+              </button>
+            ) : null}
+          </nav>
+        ) : isAccountListOpen ? (
           <nav className="service-list" aria-label="AI accounts">
           {SERVICES.filter((service) =>
             accounts.some((account) => account.serviceId === service.id)

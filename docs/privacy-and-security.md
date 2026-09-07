@@ -95,10 +95,10 @@ understand every secret, policy, jurisdiction, or proprietary term.
 
 ## Authentication limitations
 
-Google can reject OAuth from embedded user agents. AI Workspace uses a consistent Chromium browser
-identity across provider views and authentication popups, but does not import cookies or weaken
-Google controls. Perplexity users should use its email verification path when Google still rejects
-the embedded flow.
+Google can reject OAuth from embedded user agents. AI Workspace uses its native isolated Chromium
+session across provider views and authentication popups, but does not import cookies, impersonate
+an external browser, or weaken Google controls. Perplexity users should use its email verification
+path when Google still rejects the embedded flow.
 
 ## Threats and mitigations
 
