@@ -1,332 +1,152 @@
-# Contributing to AI Workspace
+# Contributing
 
-Thank you for your interest in contributing to AI Workspace! This document provides guidelines and instructions for contributing.
+Thanks for helping improve AI Workspace. The project combines a React interface, a privileged
+Electron main process, and frequently changing third-party provider websites. Small, verified
+changes are easier to review and maintain.
 
-## Table of Contents
+## Development setup
 
-- [Code of Conduct](#code-of-conduct)
-- [Getting Started](#getting-started)
-- [Development Setup](#development-setup)
-- [Making Changes](#making-changes)
-- [Commit Guidelines](#commit-guidelines)
-- [Pull Request Process](#pull-request-process)
-- [Testing](#testing)
-- [Adding New AI Providers](#adding-new-ai-providers)
-- [Style Guide](#style-guide)
-- [Reporting Bugs](#reporting-bugs)
+### Requirements
 
-## Code of Conduct
-
-Be respectful and constructive in all interactions. We're building something together.
-
-## Getting Started
-
-1. **Fork the repository** on GitHub
-2. **Clone your fork** locally:
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/ai-workspace.git
-   cd ai-workspace
-   ```
-3. **Add the upstream remote:**
-   ```bash
-   git remote add upstream https://github.com/blockframe/ai-workspace.git
-   ```
-4. **Create a branch** for your work:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-
-## Development Setup
-
-### Prerequisites
-- Node.js 18+ and npm 9+
-- Windows 10+ (Linux/macOS possible but untested)
+- Node.js 20 or 22
+- npm
 - Git
+- A supported desktop operating system
 
-### Installation
 ```bash
-cd ai-workspace
-npm install
+git clone https://github.com/BlockFrame/AI-workspace.git
+cd AI-workspace
+npm ci
 npm run dev
 ```
 
-The app will launch with hot reload enabled.
+## Before making changes
 
-### Project Structure Review
+Read:
 
-```
-electron/main.ts              # Electron lifecycle, IPC, sessions, broadcasts
-src/renderer/App.tsx          # React UI (onboarding, accounts, broadcast, settings)
-src/shared/types.ts           # TypeScript interfaces
-src/shared/services.ts        # Service registry
-src/renderer/styles.css       # All styling + themes
-```
+- [Architecture](./docs/architecture.md)
+- [Workflow guide](./docs/workflows.md)
+- [Privacy and security model](./docs/privacy-and-security.md)
 
-Read the [README.md](README.md) "Project Structure" section for detailed file descriptions.
+Keep account isolation, user consent, and the distinction between Broadcast, Research Lab, and GEO
+intact.
 
-## Making Changes
+## Repository conventions
 
-### General Principles
+- TypeScript remains strict; do not use `any` to bypass a contract.
+- Renderer code cannot access Node.js APIs.
+- Every new renderer-to-main capability must be represented in `DesktopApi`.
+- Validate IPC input again in the main process.
+- Reuse existing stores, adapters, and normalization helpers.
+- Surface errors; do not return success-shaped fallbacks.
+- Keep light, dark, high-contrast, text-size, and responsive behavior aligned.
+- Update documentation when behavior or data handling changes.
 
-1. **Keep it focused** – One feature or fix per pull request
-2. **Maintain type safety** – All TypeScript must pass type checking (`npm run typecheck`)
-3. **Follow existing patterns** – Look at similar code before writing new code
-4. **Test your changes** – Run the app in dev mode and verify the feature works
-5. **Update types if needed** – Changes affecting `types.ts` must be synchronized across main/renderer
+## Common change paths
 
-### Common Tasks
+### Renderer-only change
 
-#### Adding a Feature to the UI
-1. Modify `src/renderer/App.tsx` (state, JSX, handlers)
-2. Update `src/renderer/styles.css` (styling + dark theme)
-3. If it involves new IPC, update `src/shared/types.ts` and `electron/main.ts`
-4. Test in light and dark mode: `npm run dev`
+1. Update the relevant component under `src/renderer/`.
+2. Add light and dark styles in `src/renderer/styles.css`.
+3. Test expanded/collapsed navigation and a compact viewport.
+4. Test standard and extra-large text.
 
-#### Adding a New IPC Handler
-1. Define the handler type in `src/shared/types.ts` under `DesktopApi`
-2. Implement in `electron/main.ts` under the appropriate `ipcMain.handle()` call
-3. Call from React via `window.desktopApi.methodName()`
-4. Type checking will enforce correctness
+### IPC change
 
-#### Modifying Styles
-1. Edit `src/renderer/styles.css`
-2. Follow the existing structure: light theme defaults, dark theme overrides at bottom
-3. Use CSS variables for colors (see `:root` and `.dark` sections)
-4. Test in both light and dark mode
+1. Add or update types in `src/shared/types.ts`.
+2. Implement the preload method/event in `electron/preload.ts`.
+3. Validate and handle it in `electron/main.ts`.
+4. Use the typed method from the renderer.
+5. Verify shutdown and error behavior if the operation writes data.
 
-#### Fixing a Bug
-1. Understand the bug by reproducing it in dev mode
-2. Identify which process owns the bug (main vs. renderer)
-3. Add a focused fix
-4. Test the fix in packaged mode (`npm run package`) if it's significant
+### Research or GEO change
 
-## Commit Guidelines
+1. Start with `src/shared/research-types.ts` or `src/shared/geo-types.ts`.
+2. Update the matching store under `electron/`.
+3. Update IPC and progress events.
+4. Update the workspace component.
+5. Test recovery, retry, manual edits, and app close.
 
-Use clear, descriptive commit messages following conventional commits:
+### Provider adapter change
 
-```
-type(scope): subject
+Provider integrations are registered in:
 
-body (optional)
-```
+- `src/shared/services.ts`
+- `electron/main.ts` (`AUTH_HOSTS_BY_SERVICE` and `BROADCAST_ADAPTERS`)
+- `src/renderer/App.tsx` (provider icon mapping)
 
-### Types
-- `feat:` – New feature
-- `fix:` – Bug fix
-- `refactor:` – Code restructuring (no behavior change)
-- `style:` – Formatting, whitespace (no logic change)
-- `docs:` – Documentation updates
-- `test:` – Test additions/modifications
-- `chore:` – Build, dependencies, tooling
+Before adding or changing a provider:
 
-### Examples
-```
-feat(broadcast): add Deep Research mode support for ChatGPT
-fix(accounts): prevent session leakage between accounts
-refactor(styles): extract theme colors to CSS variables
-docs(readme): clarify installation steps
-chore(deps): upgrade Electron to 43.3.0
-```
+1. verify a stable public HTTPS web application;
+2. document authentication hosts and embedded-login limitations;
+3. use narrow composer, send, response, and streaming selectors;
+4. preserve safe text insertion and explicit send behavior;
+5. test Standard and Deep Research separately;
+6. test GEO snapshot/stability behavior with a small supervised batch;
+7. update README and workflow documentation.
 
-### Commit Message Template
+Never broaden host allowlists or disable web security to make a provider work.
 
-```
-type(scope): brief subject (50 chars max)
+## Validation
 
-Longer explanation of the change, why it's needed, and how it works.
-Include any context or related issues.
+Run the smallest relevant checks while developing, then run the full build before opening a pull
+request:
 
-Closes #123
-Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
-```
-
-## Pull Request Process
-
-1. **Ensure your branch is up to date:**
-   ```bash
-   git fetch upstream
-   git rebase upstream/main
-   ```
-
-2. **Verify your changes:**
-   ```bash
-   npm run typecheck
-   npm run build
-   ```
-
-3. **Push your branch:**
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-
-4. **Open a Pull Request** on GitHub with:
-   - Clear title and description
-   - Reference to any related issues (e.g., "Closes #42")
-   - Screenshots/videos if UI changes
-   - Testing steps
-
-5. **Address review feedback** – Push additional commits to the same branch; they'll be included in the PR
-
-6. **Squash and merge** – Maintainers will squash your commits when merging
-
-## Testing
-
-### Manual Testing Checklist
-- [ ] App launches without errors
-- [ ] Feature works in light mode
-- [ ] Feature works in dark mode
-- [ ] Feature works with keyboard navigation
-- [ ] No TypeScript errors (`npm run typecheck`)
-- [ ] No console errors in DevTools (`Ctrl+Shift+I`)
-
-### Testing All Providers
-When changing broadcast, account management, or provider registry:
-- [ ] Test with ChatGPT account
-- [ ] Test with Claude account
-- [ ] Test with Perplexity account
-- [ ] Test with Gemini account
-- [ ] Test with Z.AI account
-- [ ] Test with DeepSeek account
-- [ ] Test with Kimi account
-- [ ] Test with Mistral Vibe account
-
-### Packaged Testing
-For significant changes, also test the packaged version:
 ```bash
-npm run package
-# Find release/AI Workspace Setup.exe
-# Run installer and test the feature
+npm run typecheck
+npm run build
+git diff --check
 ```
 
-## Adding New AI Providers
+For packaging changes:
 
-To add a new AI provider (e.g., Llama Chat), follow these steps:
-
-### Step 1: Update types.ts
-In `src/shared/types.ts`, add the service ID to the `ServiceId` union:
-
-```typescript
-export type ServiceId = 'chatgpt' | 'claude' | 'perplexity' | 'gemini' | 'z-ai' | 'deepseek' | 'kimi' | 'mistral-vibe' | 'llama-chat';
+```bash
+npm run package:win
+npm run package:mac
+npm run package:linux
 ```
 
-### Step 2: Update services.ts
-In `src/shared/services.ts`, add the service to the `SERVICES` array:
+Only the package for the current operating system can be fully exercised locally. Use the GitHub
+Actions matrix for the other platforms.
 
-```typescript
-{
-  id: 'llama-chat',
-  name: 'Llama Chat',
-  homeUrl: 'https://llama.meta.com/chat',
-  trustedHosts: ['llama.meta.com', 'auth.meta.com']
-}
+### Manual checklist
+
+- [ ] App starts without main-process or renderer errors.
+- [ ] Changed workflow succeeds and its failure path is visible.
+- [ ] Light and dark themes remain readable.
+- [ ] Compact and large viewports do not clip controls.
+- [ ] Keyboard navigation and focus remain usable.
+- [ ] Drafts and active work are protected on close.
+- [ ] Provider changes were tested with authenticated accounts.
+- [ ] Privacy/security documentation still describes the behavior accurately.
+
+## Commits
+
+The repository uses short conventional-style subjects:
+
+```text
+feat(research): add linked optimization rounds
+fix(geo): clear stale citations after manual edits
+docs: modernize architecture and workflow guides
+chore(ci): package Linux and macOS artifacts
 ```
 
-### Step 3: Update main.ts
-In `electron/main.ts`:
+Keep unrelated changes in separate commits. Do not include generated `dist/`, `release/`, local
+user data, or credentials.
 
-**3a. Add to AUTH_HOSTS_BY_SERVICE:**
-```typescript
-const AUTH_HOSTS_BY_SERVICE: Record<ServiceId, string[]> = {
-  // ... existing entries ...
-  'llama-chat': ['llama.meta.com', 'auth.meta.com'],
-};
-```
+## Pull requests
 
-**3b. Add a broadcast adapter in BROADCAST_ADAPTERS:**
-```typescript
-const BROADCAST_ADAPTERS: Record<ServiceId, BroadcastAdapter> = {
-  // ... existing adapters ...
-  'llama-chat': {
-    selectors: {
-      messageInputs: ['[data-testid="message-input"]', '.message-input', 'textarea'],
-      sendButtons: ['[data-testid="send-button"]', 'button[aria-label*="Send"]'],
-      researchToggles: [],
-    },
-    researchModeName: 'research',
-  }
-};
-```
+A pull request should include:
 
-Look at existing adapters (ChatGPT, Claude, etc.) for examples. Test in the provider's web interface to find the correct selectors.
+- the user problem and chosen behavior;
+- important architectural or privacy decisions;
+- validation commands and manual scenarios;
+- screenshots for visible UI changes;
+- provider/account conditions required to reproduce;
+- known limitations.
 
-### Step 4: Add Icon
-In `src/renderer/App.tsx`, add to the icon map:
+Use [the pull request template](./.github/pull_request_template.md).
 
-```typescript
-const ICON_MAP: Record<ServiceId, string> = {
-  // ... existing icons ...
-  'llama-chat': LlamaChatIcon,  // Import the icon from @lobehub/icons-static-svg
-};
-```
+## Security issues
 
-### Step 5: Test
-1. Add a test account for the new provider
-2. Verify it loads in the accounts list
-3. Test switching to it
-4. Test sending a prompt to it via broadcast
-5. Run `npm run typecheck` and `npm run build`
-
-### Step 6: Update Documentation
-- Update [README.md](README.md) "Supported AI Services" section
-- Update [CHANGELOG.md](CHANGELOG.md) with the new provider
-
-## Style Guide
-
-### TypeScript
-- Use strict typing; avoid `any`
-- Use enums/unions instead of magic strings
-- Prefer `const` and `let` over `var`
-- Use arrow functions for callbacks
-- Keep functions focused and small
-
-### React
-- Use functional components with hooks
-- Keep components small and single-responsibility
-- Avoid deeply nested JSX
-- Use descriptive variable names for state
-- Memoize expensive calculations (`useMemo`, `useCallback`)
-
-### Styles
-- Use CSS variables for colors and spacing
-- Follow BEM-like naming: `.component-section-element`
-- Always include dark theme overrides
-- Use flexbox/grid for layout (avoid floats)
-- Test at 1024x768 and 1920x1080 resolutions
-
-### Electron Main Process
-- Use async/await instead of callbacks
-- Handle IPC errors gracefully
-- Keep handlers focused
-- Log errors with context
-- Avoid blocking operations
-
-## Reporting Bugs
-
-When reporting a bug, include:
-
-1. **Environment:**
-   - OS (Windows version)
-   - Node/npm versions
-   - AI Workspace version
-
-2. **Steps to reproduce:**
-   - Exact sequence of actions
-   - Expected vs. actual behavior
-
-3. **Logs/Screenshots:**
-   - Browser console errors (`Ctrl+Shift+I`)
-   - Screenshots of the issue
-
-4. **Additional context:**
-   - Does it happen with all providers or specific ones?
-   - Did it work in a previous version?
-
-Use the [Bug Report Template](.github/ISSUE_TEMPLATE/bug_report.md).
-
-## Questions?
-
-Open a GitHub Discussion or Issue if you need clarification. We're here to help!
-
----
-
-Thank you for contributing! 🙌
+Do not open a public issue for a suspected vulnerability. Follow [SECURITY.md](./SECURITY.md).

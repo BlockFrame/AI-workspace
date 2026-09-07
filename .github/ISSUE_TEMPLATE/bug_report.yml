@@ -1,0 +1,81 @@
+name: Bug report
+description: Report reproducible unexpected behavior in AI Workspace
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve AI Workspace. Remove account names, prompts, provider responses, cookies, and other sensitive data from reports.
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - Windows
+        - macOS Intel
+        - macOS Apple Silicon
+        - Linux
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: AI Workspace version or commit
+      placeholder: v1.0.0 or commit SHA
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Account or provider session
+        - Broadcast
+        - Research Lab
+        - GEO use case
+        - Templates or schedules
+        - Settings or accessibility
+        - Packaging or startup
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      placeholder: Describe the actual and expected behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      placeholder: |
+        1. Open...
+        2. Select...
+        3. Observe...
+    validations:
+      required: true
+  - type: textarea
+    id: provider
+    attributes:
+      label: Provider context
+      description: If relevant, include provider, mode, authentication method, and whether the website works in a normal browser. Do not include credentials.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: Redact prompts, responses, account labels, cookies, tokens, and personal data.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I reproduced this on the latest available version.
+          required: true
+        - label: I searched existing issues.
+          required: true
+        - label: This report contains no credentials or private provider data.
+          required: true

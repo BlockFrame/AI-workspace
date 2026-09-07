@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="560" viewBox="0 0 1440 560" role="img" aria-labelledby="title description">
+  <title id="title">AI Workspace product overview</title>
+  <desc id="description">A desktop workspace connecting multiple AI providers to Broadcast, Research Lab, and GEO workflows.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#11152b"/>
+      <stop offset="0.5" stop-color="#171d3d"/>
+      <stop offset="1" stop-color="#0d2929"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8b7cff"/>
+      <stop offset="1" stop-color="#58d4a1"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#050713" flood-opacity=".55"/>
+    </filter>
+  </defs>
+  <rect width="1440" height="560" rx="32" fill="url(#background)"/>
+  <circle cx="1260" cy="80" r="230" fill="#6557de" opacity=".10"/>
+  <circle cx="160" cy="520" r="260" fill="#40c88f" opacity=".08"/>
+
+  <g transform="translate(92 88)">
+    <rect width="64" height="64" rx="18" fill="url(#accent)"/>
+    <path d="M20 42 32 17l12 25M24 34h16" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="84" y="31" fill="#f7f8ff" font-family="Inter,Segoe UI,sans-serif" font-size="32" font-weight="750">AI Workspace</text>
+    <text x="84" y="55" fill="#aab3cf" font-family="Inter,Segoe UI,sans-serif" font-size="15">Your subscriptions. One research workflow.</text>
+  </g>
+
+  <g transform="translate(92 196)">
+    <text fill="#ffffff" font-family="Inter,Segoe UI,sans-serif" font-size="48" font-weight="760">
+      <tspan x="0" y="0">Compare more perspectives.</tspan>
+      <tspan x="0" y="58">Build a better answer.</tspan>
+    </text>
+    <text x="0" y="122" fill="#b8c0d7" font-family="Inter,Segoe UI,sans-serif" font-size="18">
+      Broadcast prompts, review responses, optimize findings, and run supervised GEO studies.
+    </text>
+  </g>
+
+  <g transform="translate(92 390)">
+    <g>
+      <rect width="152" height="56" rx="14" fill="#252a4d" stroke="#494f79"/>
+      <path d="m26 19 20 9-20 9 4-9-4-9Z" fill="none" stroke="#a9a0ff" stroke-width="2"/>
+      <text x="58" y="34" fill="#e9eaff" font-family="Inter,Segoe UI,sans-serif" font-size="15" font-weight="650">Broadcast</text>
+    </g>
+    <g transform="translate(168)">
+      <rect width="170" height="56" rx="14" fill="#252a4d" stroke="#494f79"/>
+      <path d="m29 17 2.5 7 7 2.5-7 2.5-2.5 7-2.5-7-7-2.5 7-2.5 2.5-7Z" fill="none" stroke="#a9a0ff" stroke-width="2"/>
+      <text x="54" y="34" fill="#e9eaff" font-family="Inter,Segoe UI,sans-serif" font-size="15" font-weight="650">Research Lab</text>
+    </g>
+    <g transform="translate(354)">
+      <rect width="150" height="56" rx="14" fill="#193b36" stroke="#397366"/>
+      <circle cx="29" cy="28" r="10" fill="none" stroke="#75ddb6" stroke-width="2"/>
+      <path d="M19 28h20M29 18c4 4 4 16 0 20M29 18c-4 4-4 16 0 20" fill="none" stroke="#75ddb6" stroke-width="1.5"/>
+      <text x="52" y="34" fill="#dcfff1" font-family="Inter,Segoe UI,sans-serif" font-size="15" font-weight="650">GEO studies</text>
+    </g>
+  </g>
+
+  <g transform="translate(820 72)" filter="url(#shadow)">
+    <rect width="522" height="416" rx="24" fill="#f7f8fc"/>
+    <rect width="126" height="416" rx="24" fill="#171a22"/>
+    <rect x="102" width="24" height="416" fill="#171a22"/>
+    <rect x="18" y="22" width="36" height="36" rx="11" fill="url(#accent)"/>
+    <rect x="18" y="82" width="90" height="34" rx="9" fill="#262a35"/>
+    <rect x="18" y="126" width="90" height="34" rx="9" fill="#262a35"/>
+    <rect x="18" y="170" width="90" height="34" rx="9" fill="#262a35"/>
+    <rect x="18" y="224" width="90" height="34" rx="9" fill="#21242d"/>
+    <circle cx="35" cy="241" r="7" fill="#7f74ef"/>
+    <rect x="48" y="237" width="43" height="7" rx="3.5" fill="#9ca4b6"/>
+    <rect x="146" y="22" width="356" height="52" rx="12" fill="#ffffff" stroke="#e1e4ec"/>
+    <rect x="168" y="38" width="210" height="9" rx="4.5" fill="#303849"/>
+    <rect x="168" y="54" width="126" height="6" rx="3" fill="#a3a9b5"/>
+    <rect x="146" y="94" width="356" height="130" rx="16" fill="#ffffff" stroke="#e1e4ec"/>
+    <text x="168" y="124" fill="#687184" font-family="Inter,Segoe UI,sans-serif" font-size="11" font-weight="700">RESEARCH ROUND</text>
+    <rect x="168" y="142" width="270" height="8" rx="4" fill="#3f4758"/>
+    <rect x="168" y="159" width="303" height="7" rx="3.5" fill="#c3c8d1"/>
+    <rect x="168" y="175" width="286" height="7" rx="3.5" fill="#c3c8d1"/>
+    <rect x="168" y="192" width="170" height="7" rx="3.5" fill="#c3c8d1"/>
+    <rect x="146" y="244" width="170" height="150" rx="16" fill="#ffffff" stroke="#e1e4ec"/>
+    <rect x="332" y="244" width="170" height="150" rx="16" fill="#ffffff" stroke="#e1e4ec"/>
+    <circle cx="171" cy="270" r="9" fill="#756ae2"/>
+    <circle cx="357" cy="270" r="9" fill="#55b892"/>
+    <rect x="188" y="266" width="76" height="8" rx="4" fill="#596273"/>
+    <rect x="374" y="266" width="76" height="8" rx="4" fill="#596273"/>
+    <rect x="165" y="294" width="124" height="6" rx="3" fill="#c6cad3"/>
+    <rect x="165" y="309" width="132" height="6" rx="3" fill="#c6cad3"/>
+    <rect x="165" y="324" width="104" height="6" rx="3" fill="#c6cad3"/>
+    <rect x="351" y="294" width="124" height="6" rx="3" fill="#c6cad3"/>
+    <rect x="351" y="309" width="132" height="6" rx="3" fill="#c6cad3"/>
+    <rect x="351" y="324" width="96" height="6" rx="3" fill="#c6cad3"/>
+    <rect x="165" y="354" width="72" height="22" rx="7" fill="#efedfd"/>
+    <rect x="351" y="354" width="72" height="22" rx="7" fill="#e8f6ef"/>
+  </g>
+</svg>

@@ -10,11 +10,19 @@ import zaiLogo from "@lobehub/icons-static-svg/icons/zai.svg";
 import { scanSensitiveData } from "../shared/sensitive-data";
 import type { SensitiveDataFinding } from "../shared/sensitive-data";
 import { SERVICES, SERVICE_BY_ID } from "../shared/services";
+import { ResearchWorkspace } from "./ResearchWorkspace";
+import { UseCasesWorkspace } from "./UseCasesWorkspace";
 import type {
   AccountProfile,
+  AccountProviderSettings,
+  AppPreferences,
   BroadcastDeliveryResult,
   BroadcastMode,
-  DataProtectionSettings,
+  PromptHistoryEntry,
+  PromptTemplate,
+  PromptTemplateInput,
+  ScheduledPrompt,
+  ScheduleRecurrence,
   ServiceId,
   UsagePeriodDays,
   UsageSummary,
@@ -26,11 +34,16 @@ type IconName =
   | "arrow-right"
   | "check"
   | "chart"
+  | "clock"
+  | "chevron-down"
   | "chevron-right"
   | "external"
   | "eye"
   | "lock"
   | "moon"
+  | "history"
+  | "grid"
+  | "keyboard"
   | "plus"
   | "refresh"
   | "send"
@@ -39,21 +52,20 @@ type IconName =
   | "sparkles"
   | "type"
   | "trash"
+  | "users"
   | "x";
 
-type ThemePreference = "light" | "dark" | "system";
-type TextSizePreference = "standard" | "large" | "extra-large";
-type SettingsPage = "preferences" | "data-protection" | "usage";
+type SettingsPage =
+  | "preferences"
+  | "accounts"
+  | "templates"
+  | "memory"
+  | "automation"
+  | "shortcuts"
+  | "data-protection"
+  | "usage";
 
-interface UserPreferences {
-  theme: ThemePreference;
-  textSize: TextSizePreference;
-  highContrast: boolean;
-  reducedMotion: boolean;
-  dataProtectionByService: DataProtectionSettings;
-}
-
-const DEFAULT_DATA_PROTECTION_SETTINGS: DataProtectionSettings = {
+const DEFAULT_DATA_PROTECTION_SETTINGS: AppPreferences["dataProtectionByService"] = {
   chatgpt: true,
   claude: true,
   perplexity: true,
@@ -64,68 +76,14 @@ const DEFAULT_DATA_PROTECTION_SETTINGS: DataProtectionSettings = {
   mistral: true
 };
 
-const DEFAULT_PREFERENCES: UserPreferences = {
+const DEFAULT_PREFERENCES: AppPreferences = {
   theme: "system",
   textSize: "standard",
+  appZoomPercent: 100,
   highContrast: false,
   reducedMotion: false,
   dataProtectionByService: DEFAULT_DATA_PROTECTION_SETTINGS
 };
-
-const PREFERENCES_KEY = "ai-workspace-preferences";
-
-function isThemePreference(value: unknown): value is ThemePreference {
-  return value === "light" || value === "dark" || value === "system";
-}
-
-function isTextSizePreference(value: unknown): value is TextSizePreference {
-  return value === "standard" || value === "large" || value === "extra-large";
-}
-
-function loadPreferences(): UserPreferences {
-  const stored = window.localStorage.getItem(PREFERENCES_KEY);
-  if (!stored) {
-    return DEFAULT_PREFERENCES;
-  }
-
-  try {
-    const candidate: unknown = JSON.parse(stored);
-    if (!candidate || typeof candidate !== "object") {
-      throw new Error("Stored preferences must be an object.");
-    }
-    const values = candidate as Record<string, unknown>;
-    if (
-      !isThemePreference(values.theme) ||
-      !isTextSizePreference(values.textSize) ||
-      typeof values.highContrast !== "boolean" ||
-      typeof values.reducedMotion !== "boolean"
-    ) {
-      throw new Error("Stored preferences contain invalid values.");
-    }
-    const protectionCandidate =
-      values.dataProtectionByService &&
-      typeof values.dataProtectionByService === "object"
-        ? (values.dataProtectionByService as Record<string, unknown>)
-        : {};
-    const dataProtectionByService = { ...DEFAULT_DATA_PROTECTION_SETTINGS };
-    for (const service of SERVICES) {
-      const enabled = protectionCandidate[service.id];
-      if (typeof enabled === "boolean") {
-        dataProtectionByService[service.id] = enabled;
-      }
-    }
-    return {
-      theme: values.theme,
-      textSize: values.textSize,
-      highContrast: values.highContrast,
-      reducedMotion: values.reducedMotion,
-      dataProtectionByService
-    };
-  } catch (preferenceError) {
-    console.error("Unable to load accessibility preferences.", preferenceError);
-    return DEFAULT_PREFERENCES;
-  }
-}
 
 function trapDialogFocus(event: React.KeyboardEvent<HTMLElement>) {
   if (event.key !== "Tab") {
@@ -133,7 +91,7 @@ function trapDialogFocus(event: React.KeyboardEvent<HTMLElement>) {
   }
   const focusable = [
     ...event.currentTarget.querySelectorAll<HTMLElement>(
-      'button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
     )
   ];
   const first = focusable[0];
@@ -163,6 +121,23 @@ function formatUsageDuration(activeMs: number): string {
 const SERVICE_NUMBER = new Map(
   SERVICES.map((service, index) => [service.id, index + 1])
 );
+const MAX_BROADCAST_TARGETS = 8;
+const DISMISSED_AUTH_GUIDANCE_KEY = "ai-workspace:dismissed-auth-guidance";
+
+const SETTINGS_TABS: ReadonlyArray<{
+  page: SettingsPage;
+  label: string;
+  icon: IconName;
+}> = [
+  { page: "preferences", label: "Preferences", icon: "settings" },
+  { page: "accounts", label: "Accounts", icon: "sparkles" },
+  { page: "templates", label: "Templates", icon: "type" },
+  { page: "memory", label: "Memory", icon: "history" },
+  { page: "automation", label: "Automation", icon: "clock" },
+  { page: "shortcuts", label: "Shortcuts", icon: "keyboard" },
+  { page: "data-protection", label: "Protection", icon: "shield" },
+  { page: "usage", label: "Usage", icon: "chart" }
+];
 
 function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
   const paths: Record<IconName, React.ReactNode> = {
@@ -177,6 +152,13 @@ function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
         <path d="M22 20H2" />
       </>
     ),
+    clock: (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 7v5l3 2" />
+      </>
+    ),
+    "chevron-down": <path d="m6 9 6 6 6-6" />,
     "chevron-right": <path d="m9 18 6-6-6-6" />,
     external: (
       <>
@@ -198,6 +180,26 @@ function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
       </>
     ),
     moon: <path d="M21 12.8A8.5 8.5 0 1 1 11.2 3 6.5 6.5 0 0 0 21 12.8Z" />,
+    history: (
+      <>
+        <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+        <path d="M3 3v5h5M12 7v5l3 2" />
+      </>
+    ),
+    grid: (
+      <>
+        <rect x="3" y="3" width="7" height="7" rx="1.5" />
+        <rect x="14" y="3" width="7" height="7" rx="1.5" />
+        <rect x="3" y="14" width="7" height="7" rx="1.5" />
+        <rect x="14" y="14" width="7" height="7" rx="1.5" />
+      </>
+    ),
+    keyboard: (
+      <>
+        <rect x="2" y="5" width="20" height="14" rx="2" />
+        <path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M6 13h.01M10 13h8M6 17h12" />
+      </>
+    ),
     plus: (
       <>
         <path d="M12 5v14" />
@@ -247,6 +249,14 @@ function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
         <path d="M3 6h18" />
         <path d="M8 6V4h8v2" />
         <path d="m19 6-1 15H6L5 6" />
+      </>
+    ),
+    users: (
+      <>
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
       </>
     ),
     x: (
@@ -321,6 +331,87 @@ function formatHost(url: string): string {
   }
 }
 
+function defaultAccountSettings(accountId: string): AccountProviderSettings {
+  return {
+    accountId,
+    defaultBroadcastMode: "standard",
+    contextNote: "",
+    includeContextInPrompts: false,
+    zoomPercent: 100,
+    updatedAt: new Date(0).toISOString()
+  };
+}
+
+function toDateTimeInput(date: Date): string {
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+  return local.toISOString().slice(0, 16);
+}
+
+function formatDateTime(value: string | null | undefined): string {
+  return value
+    ? new Intl.DateTimeFormat(undefined, {
+        dateStyle: "medium",
+        timeStyle: "short"
+      }).format(new Date(value))
+    : "No future run";
+}
+
+const TEMPLATE_PLACEHOLDER = /\{\{([A-Za-z_][A-Za-z0-9_]{0,63})\}\}/g;
+
+function emptyTemplateValues(): Record<string, string> {
+  return Object.create(null) as Record<string, string>;
+}
+
+function getTemplateValue(
+  values: Readonly<Record<string, string>>,
+  variable: string
+): string | undefined {
+  if (!Object.prototype.hasOwnProperty.call(values, variable)) {
+    return undefined;
+  }
+  const value: unknown = values[variable];
+  return typeof value === "string" ? value : undefined;
+}
+
+function extractTemplateVariables(content: string): string[] {
+  const variables = new Set<string>();
+  for (const match of content.matchAll(TEMPLATE_PLACEHOLDER)) {
+    const variable = match[1];
+    if (variable) {
+      variables.add(variable);
+    }
+  }
+  return [...variables];
+}
+
+function renderPromptTemplate(
+  content: string,
+  values: Readonly<Record<string, string>>
+): string {
+  return content.replace(TEMPLATE_PLACEHOLDER, (placeholder, variable: string) => {
+    const value = getTemplateValue(values, variable);
+    return value?.trim() ? value : placeholder;
+  });
+}
+
+function emptyTemplateInput(): PromptTemplateInput {
+  return { name: "", category: "", description: "", content: "" };
+}
+
+function loadDismissedAuthGuidance(): string[] {
+  try {
+    const stored: unknown = JSON.parse(
+      window.localStorage.getItem(DISMISSED_AUTH_GUIDANCE_KEY) ?? "[]"
+    );
+    return Array.isArray(stored)
+      ? stored.filter((value): value is string => typeof value === "string")
+      : [];
+  } catch {
+    console.warn("Unable to read dismissed provider sign-in guidance.");
+    return [];
+  }
+}
+
 export default function App() {
   const [accounts, setAccounts] = useState<AccountProfile[]>([]);
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
@@ -331,19 +422,59 @@ export default function App() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
+  const [isResearchOpen, setIsResearchOpen] = useState(false);
+  const [isUseCasesOpen, setIsUseCasesOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(
+    () => window.innerWidth < 900
+  );
+  const [isAccountListOpen, setIsAccountListOpen] = useState(false);
+  const [dismissedAuthGuidance, setDismissedAuthGuidance] = useState<string[]>(
+    loadDismissedAuthGuidance
+  );
   const [broadcastMode, setBroadcastMode] = useState<BroadcastMode>("standard");
   const [broadcastPrompt, setBroadcastPrompt] = useState("");
   const [broadcastAccountIds, setBroadcastAccountIds] = useState<string[]>([]);
   const [broadcastResults, setBroadcastResults] = useState<BroadcastDeliveryResult[]>([]);
   const [broadcastError, setBroadcastError] = useState<string | null>(null);
+  const [broadcastTiming, setBroadcastTiming] = useState<"now" | "scheduled">("now");
+  const [scheduleAt, setScheduleAt] = useState(() =>
+    toDateTimeInput(new Date(Date.now() + 3_600_000))
+  );
+  const [scheduleRecurrence, setScheduleRecurrence] =
+    useState<ScheduleRecurrence>("once");
   const [sensitiveFindings, setSensitiveFindings] = useState<SensitiveDataFinding[]>([]);
   const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [settingsPage, setSettingsPage] = useState<SettingsPage>("preferences");
   const [usagePeriod, setUsagePeriod] = useState<UsagePeriodDays>(7);
   const [usageSummary, setUsageSummary] = useState<UsageSummary | null>(null);
   const [isUsageLoading, setIsUsageLoading] = useState(false);
+  const [isUsageExporting, setIsUsageExporting] = useState(false);
   const [usageError, setUsageError] = useState<string | null>(null);
-  const [preferences, setPreferences] = useState<UserPreferences>(loadPreferences);
+  const [preferences, setPreferences] = useState<AppPreferences>(DEFAULT_PREFERENCES);
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+  const [accountSettings, setAccountSettings] = useState<AccountProviderSettings[]>([]);
+  const [settingsAccountId, setSettingsAccountId] = useState<string>("");
+  const [promptHistory, setPromptHistory] = useState<PromptHistoryEntry[]>([]);
+  const [promptTemplates, setPromptTemplates] = useState<PromptTemplate[]>([]);
+  const [templateSearch, setTemplateSearch] = useState("");
+  const [templateFormMode, setTemplateFormMode] = useState<"create" | "edit" | null>(
+    null
+  );
+  const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
+  const [templateDraft, setTemplateDraft] = useState<PromptTemplateInput>(
+    emptyTemplateInput
+  );
+  const [isSavingTemplate, setIsSavingTemplate] = useState(false);
+  const [broadcastTemplateId, setBroadcastTemplateId] = useState("");
+  const [broadcastTemplateValues, setBroadcastTemplateValues] = useState<
+    Record<string, string>
+  >(emptyTemplateValues);
+  const [broadcastTemplateError, setBroadcastTemplateError] = useState<string | null>(
+    null
+  );
+  const [schedules, setSchedules] = useState<ScheduledPrompt[]>([]);
+  const [settingsError, setSettingsError] = useState<string | null>(null);
+  const [settingsMessage, setSettingsMessage] = useState<string | null>(null);
   const [systemDark, setSystemDark] = useState(
     () => window.matchMedia("(prefers-color-scheme: dark)").matches
   );
@@ -353,11 +484,21 @@ export default function App() {
   const settingsCloseRef = useRef<HTMLButtonElement>(null);
   const settingsButtonRef = useRef<HTMLButtonElement>(null);
   const broadcastButtonRef = useRef<HTMLButtonElement>(null);
+  const researchButtonRef = useRef<HTMLButtonElement>(null);
+  const useCasesButtonRef = useRef<HTMLButtonElement>(null);
   const broadcastCloseRef = useRef<HTMLButtonElement>(null);
   const broadcastPromptRef = useRef<HTMLTextAreaElement>(null);
+  const templateNameRef = useRef<HTMLInputElement>(null);
+  const researchCloseHandlerRef = useRef<(() => Promise<boolean>) | null>(null);
+  const useCasesCloseHandlerRef = useRef<(() => Promise<boolean>) | null>(null);
 
   const isConnectDialogOpen = connectServiceId !== null;
-  const isOverlayOpen = isConnectDialogOpen || isSettingsOpen || isBroadcastOpen;
+  const isOverlayOpen =
+    isConnectDialogOpen ||
+    isSettingsOpen ||
+    isBroadcastOpen ||
+    isResearchOpen ||
+    isUseCasesOpen;
   const effectiveTheme =
     preferences.theme === "system"
       ? systemDark
@@ -368,18 +509,103 @@ export default function App() {
     () => accounts.find((account) => account.id === selectedAccountId),
     [accounts, selectedAccountId]
   );
+  const selectedSettingsAccount = useMemo(
+    () => accounts.find((account) => account.id === settingsAccountId),
+    [accounts, settingsAccountId]
+  );
+  const showPerplexityAuthGuidance =
+    selectedAccount?.serviceId === "perplexity" &&
+    !dismissedAuthGuidance.includes(selectedAccount.id);
+
+  const dismissAuthGuidance = () => {
+    if (!selectedAccount) {
+      return;
+    }
+    setDismissedAuthGuidance((current) => {
+      const next = [...new Set([...current, selectedAccount.id])];
+      try {
+        window.localStorage.setItem(DISMISSED_AUTH_GUIDANCE_KEY, JSON.stringify(next));
+      } catch (storageError) {
+        console.error("Unable to save dismissed provider sign-in guidance.", storageError);
+      }
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    const compactLayout = window.matchMedia("(max-width: 899px)");
+    const handleCompactLayout = (event: MediaQueryListEvent) => {
+      if (event.matches) {
+        setIsSidebarCollapsed(true);
+      }
+    };
+    compactLayout.addEventListener("change", handleCompactLayout);
+    return () => compactLayout.removeEventListener("change", handleCompactLayout);
+  }, []);
+  const selectedAccountSettings = useMemo(
+    () =>
+      accountSettings.find((settings) => settings.accountId === settingsAccountId) ??
+      (settingsAccountId ? defaultAccountSettings(settingsAccountId) : null),
+    [accountSettings, settingsAccountId]
+  );
+  const broadcastTargetLimitReached =
+    broadcastAccountIds.length >= MAX_BROADCAST_TARGETS;
+  const selectedBroadcastTemplate = useMemo(
+    () => promptTemplates.find((template) => template.id === broadcastTemplateId),
+    [broadcastTemplateId, promptTemplates]
+  );
+  const broadcastTemplateVariables = useMemo(
+    () =>
+      selectedBroadcastTemplate
+        ? extractTemplateVariables(selectedBroadcastTemplate.content)
+        : [],
+    [selectedBroadcastTemplate]
+  );
+  const missingBroadcastTemplateVariables = broadcastTemplateVariables.filter(
+    (variable) => !getTemplateValue(broadcastTemplateValues, variable)?.trim()
+  );
+  const renderedTemplatePreview = selectedBroadcastTemplate
+    ? renderPromptTemplate(selectedBroadcastTemplate.content, broadcastTemplateValues)
+    : "";
+  const filteredPromptTemplates = useMemo(() => {
+    const query = templateSearch.trim().toLocaleLowerCase();
+    if (!query) {
+      return promptTemplates;
+    }
+    return promptTemplates.filter((template) =>
+      [template.name, template.category, template.description, template.content]
+        .filter((value): value is string => Boolean(value))
+        .some((value) => value.toLocaleLowerCase().includes(query))
+    );
+  }, [promptTemplates, templateSearch]);
 
   const selectAccount = useCallback(async (accountId: string) => {
     setError(null);
     setSelectedAccountId(accountId);
     setViewState(null);
     try {
-      await window.desktop.selectAccount(accountId);
+      setAccounts(await window.desktop.selectAccount(accountId));
     } catch (selectionError) {
       setError(
         selectionError instanceof Error
           ? selectionError.message
           : "Unable to open this account."
+      );
+    }
+  }, []);
+
+  const selectRecentProvider = useCallback(async (serviceId: ServiceId) => {
+    setError(null);
+    setViewState(null);
+    try {
+      const result = await window.desktop.selectRecentAccount(serviceId);
+      setAccounts(result.accounts);
+      setSelectedAccountId(result.accountId);
+    } catch (selectionError) {
+      setError(
+        selectionError instanceof Error
+          ? selectionError.message
+          : "Unable to open this provider."
       );
     }
   }, []);
@@ -405,24 +631,49 @@ export default function App() {
 
   const openSettings = useCallback((page: SettingsPage = "preferences") => {
     setSettingsPage(page);
+    setSettingsError(null);
+    setSettingsMessage(null);
     setIsSettingsOpen(true);
   }, []);
 
   const openBroadcast = useCallback(() => {
-    setBroadcastAccountIds(accounts.map((account) => account.id));
+    setBroadcastAccountIds(
+      sortAccounts(accounts).slice(0, MAX_BROADCAST_TARGETS).map((account) => account.id)
+    );
+    const activeSettings = accountSettings.find(
+      (settings) => settings.accountId === selectedAccountId
+    );
+    setBroadcastMode(activeSettings?.defaultBroadcastMode ?? "standard");
+    setBroadcastTiming("now");
+    setScheduleAt(toDateTimeInput(new Date(Date.now() + 3_600_000)));
     setBroadcastResults([]);
     setBroadcastError(null);
+    setBroadcastTemplateId("");
+    setBroadcastTemplateValues(emptyTemplateValues());
+    setBroadcastTemplateError(null);
     setSensitiveFindings([]);
     setIsBroadcastOpen(true);
-  }, [accounts]);
+  }, [accountSettings, accounts, selectedAccountId]);
 
   const closeBroadcast = useCallback(() => {
     if (isBroadcasting) {
       return;
     }
     setIsBroadcastOpen(false);
+    void window.desktop.releaseBroadcastViews();
     requestAnimationFrame(() => broadcastButtonRef.current?.focus());
   }, [isBroadcasting]);
+
+  const closeResearch = useCallback(() => {
+    setIsResearchOpen(false);
+    void window.desktop.releaseBroadcastViews();
+    requestAnimationFrame(() => researchButtonRef.current?.focus());
+  }, []);
+
+  const closeUseCases = useCallback(() => {
+    setIsUseCasesOpen(false);
+    requestAnimationFrame(() => useCasesButtonRef.current?.focus());
+  }, []);
 
   const loadUsageSummary = useCallback(async (periodDays: UsagePeriodDays) => {
     setIsUsageLoading(true);
@@ -438,20 +689,62 @@ export default function App() {
     }
   }, []);
 
+  const exportUsageCsv = async () => {
+    setIsUsageExporting(true);
+    setUsageError(null);
+    setSettingsMessage(null);
+    try {
+      const result = await window.desktop.exportUsageCsv(usagePeriod);
+      setSettingsMessage(
+        result.status === "saved"
+          ? `Usage CSV saved with ${result.rowCount} data rows.`
+          : "Usage CSV export cancelled."
+      );
+    } catch (exportError) {
+      setUsageError(
+        exportError instanceof Error ? exportError.message : "Unable to export usage data."
+      );
+    } finally {
+      setIsUsageExporting(false);
+    }
+  };
+
   useEffect(() => {
     let disposed = false;
-    void window.desktop
-      .listAccounts()
-      .then((storedAccounts) => {
+    void Promise.all([
+      window.desktop.listAccounts(),
+      window.desktop.getPreferences(),
+      window.desktop.listAccountSettings(),
+      window.desktop.listPromptHistory(),
+      window.desktop.listPromptTemplates(),
+      window.desktop.listSchedules()
+    ])
+      .then(
+        ([
+          storedAccounts,
+          storedPreferences,
+          storedAccountSettings,
+          storedHistory,
+          storedTemplates,
+          storedSchedules
+        ]) => {
         if (disposed) {
           return;
         }
         setAccounts(storedAccounts);
+        setPreferences(storedPreferences);
+        setPreferencesLoaded(true);
+        setAccountSettings(storedAccountSettings);
+        setPromptHistory(storedHistory);
+        setPromptTemplates(storedTemplates);
+        setSchedules(storedSchedules);
         const firstAccount = sortAccounts(storedAccounts)[0];
         if (firstAccount) {
+          setSettingsAccountId(firstAccount.id);
           void selectAccount(firstAccount.id);
         }
-      })
+        }
+      )
       .catch((loadError: unknown) => {
         if (!disposed) {
           setError(
@@ -473,6 +766,40 @@ export default function App() {
   }, [selectAccount]);
 
   useEffect(() => window.desktop.onViewState(setViewState), []);
+  useEffect(
+    () =>
+      window.desktop.onAppBeforeClose(() => {
+        const handlers = [
+          researchCloseHandlerRef.current,
+          useCasesCloseHandlerRef.current
+        ].filter(
+          (handler): handler is () => Promise<boolean> => handler !== null
+        );
+        void handlers
+          .reduce(
+            async (canContinue, handler) =>
+              (await canContinue) ? handler() : false,
+            Promise.resolve(true)
+          )
+          .then((canClose) => {
+            if (canClose) {
+              window.desktop.confirmAppClose();
+            } else {
+              window.desktop.cancelAppClose();
+            }
+          });
+      }),
+    []
+  );
+  useEffect(() => window.desktop.onSchedulesChanged(setSchedules), []);
+  useEffect(() => window.desktop.onPreferencesChanged(setPreferences), []);
+  useEffect(
+    () =>
+      window.desktop.onProviderShortcut((serviceId) => {
+        void selectRecentProvider(serviceId);
+      }),
+    [selectRecentProvider]
+  );
 
   useEffect(() => {
     window.desktop.setViewVisible(!isOverlayOpen);
@@ -484,7 +811,14 @@ export default function App() {
       requestAnimationFrame(() => broadcastPromptRef.current?.focus());
     }
     return () => window.desktop.setViewVisible(true);
-  }, [isBroadcastOpen, isConnectDialogOpen, isOverlayOpen, isSettingsOpen]);
+  }, [
+    isBroadcastOpen,
+    isConnectDialogOpen,
+    isOverlayOpen,
+    isResearchOpen,
+    isUseCasesOpen,
+    isSettingsOpen
+  ]);
 
   useEffect(() => {
     const darkModeQuery = window.matchMedia("(prefers-color-scheme: dark)");
@@ -500,16 +834,19 @@ export default function App() {
     root.dataset.contrast = preferences.highContrast ? "high" : "normal";
     root.dataset.motion = preferences.reducedMotion ? "reduced" : "full";
     root.style.colorScheme = effectiveTheme;
-    window.localStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences));
   }, [effectiveTheme, preferences]);
 
   useEffect(() => {
-    void window.desktop
-      .setDataProtectionSettings(preferences.dataProtectionByService)
-      .catch((protectionError: unknown) => {
-        console.error("Unable to apply data protection settings.", protectionError);
+    if (!preferencesLoaded) {
+      return;
+    }
+    const timeout = window.setTimeout(() => {
+      void window.desktop.setPreferences(preferences).catch((preferenceError: unknown) => {
+        console.error("Unable to persist preferences.", preferenceError);
       });
-  }, [preferences.dataProtectionByService]);
+    }, 150);
+    return () => window.clearTimeout(timeout);
+  }, [preferences, preferencesLoaded]);
 
   useEffect(() => {
     const workspace = workspaceRef.current;
@@ -534,7 +871,7 @@ export default function App() {
       observer.disconnect();
       window.removeEventListener("resize", reportBounds);
     };
-  }, [selectedAccountId]);
+  }, [preferences.appZoomPercent, selectedAccountId]);
 
   useEffect(() => {
     const handleShortcut = (event: KeyboardEvent) => {
@@ -567,12 +904,9 @@ export default function App() {
       if (!service) {
         return;
       }
-      const firstAccount = sortAccounts(
-        accounts.filter((account) => account.serviceId === service.id)
-      )[0];
-      if (firstAccount) {
+      if (accounts.some((account) => account.serviceId === service.id)) {
         event.preventDefault();
-        void selectAccount(firstAccount.id);
+        void selectRecentProvider(service.id);
       }
     };
     window.addEventListener("keydown", handleShortcut);
@@ -587,7 +921,7 @@ export default function App() {
     isSettingsOpen,
     openConnectDialog,
     openSettings,
-    selectAccount
+    selectRecentProvider
   ]);
 
   useEffect(() => {
@@ -595,6 +929,37 @@ export default function App() {
       void loadUsageSummary(usagePeriod);
     }
   }, [isSettingsOpen, loadUsageSummary, settingsPage, usagePeriod]);
+
+  useEffect(() => {
+    if (isSettingsOpen && settingsPage === "templates" && templateFormMode) {
+      requestAnimationFrame(() => templateNameRef.current?.focus());
+    }
+  }, [isSettingsOpen, settingsPage, templateFormMode, editingTemplateId]);
+
+  useEffect(() => {
+    if (!isSettingsOpen) {
+      return;
+    }
+    if (settingsPage === "automation") {
+      void window.desktop.listSchedules().then(setSchedules).catch((loadError: unknown) => {
+        setSettingsError(
+          loadError instanceof Error ? loadError.message : "Unable to load schedules."
+        );
+      });
+    } else if (settingsPage === "memory") {
+      void window.desktop.listPromptHistory().then(setPromptHistory).catch((loadError: unknown) => {
+        setSettingsError(
+          loadError instanceof Error ? loadError.message : "Unable to load prompt history."
+        );
+      });
+    } else if (settingsPage === "templates") {
+      void window.desktop.listPromptTemplates().then(setPromptTemplates).catch((loadError: unknown) => {
+        setSettingsError(
+          loadError instanceof Error ? loadError.message : "Unable to load prompt templates."
+        );
+      });
+    }
+  }, [isSettingsOpen, settingsPage]);
 
   const addAccount = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -614,6 +979,11 @@ export default function App() {
       setConnectServiceId(null);
       setAccountLabel("");
       if (addedAccount) {
+        setAccountSettings((current) => [
+          ...current,
+          defaultAccountSettings(addedAccount.id)
+        ]);
+        setSettingsAccountId(addedAccount.id);
         await selectAccount(addedAccount.id);
       }
     } catch (addError) {
@@ -636,6 +1006,16 @@ export default function App() {
         return;
       }
       setAccounts(result.accounts);
+      setAccountSettings((current) =>
+        current.filter((settings) => settings.accountId !== accountId)
+      );
+      setBroadcastAccountIds((current) => current.filter((id) => id !== accountId));
+      setBroadcastResults((current) =>
+        current.filter((delivery) => delivery.accountId !== accountId)
+      );
+      if (settingsAccountId === accountId) {
+        setSettingsAccountId(sortAccounts(result.accounts)[0]?.id ?? "");
+      }
       if (selectedAccountId === accountId) {
         const nextAccount = sortAccounts(result.accounts)[0];
         setSelectedAccountId(nextAccount?.id ?? null);
@@ -666,8 +1046,8 @@ export default function App() {
     }
   };
 
-  const sendBroadcast = async () => {
-    const prompt = broadcastPrompt.trim();
+  const sendBroadcast = async (allowSensitiveData = false) => {
+    const prompt = broadcastPrompt;
     setIsBroadcasting(true);
     setBroadcastError(null);
     setSensitiveFindings([]);
@@ -676,9 +1056,11 @@ export default function App() {
       const result = await window.desktop.broadcastPrompt({
         accountIds: broadcastAccountIds,
         prompt,
-        mode: broadcastMode
+        mode: broadcastMode,
+        allowSensitiveData
       });
       setBroadcastResults(result.deliveries);
+      setPromptHistory(await window.desktop.listPromptHistory());
     } catch (broadcastFailure) {
       setBroadcastError(
         broadcastFailure instanceof Error
@@ -690,42 +1072,319 @@ export default function App() {
     }
   };
 
+  const saveSchedule = async (allowSensitiveData = false) => {
+    const firstRun = new Date(scheduleAt);
+    if (!scheduleAt || !Number.isFinite(firstRun.getTime()) || firstRun.getTime() <= Date.now()) {
+      setBroadcastError("Choose a future date and time for the first run.");
+      return;
+    }
+    setIsBroadcasting(true);
+    setBroadcastError(null);
+    setSensitiveFindings([]);
+    try {
+      const schedule = await window.desktop.createSchedule({
+        accountIds: broadcastAccountIds,
+        prompt: broadcastPrompt,
+        mode: broadcastMode,
+        recurrence: scheduleRecurrence,
+        firstRunAt: firstRun.toISOString(),
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        localStartAt: scheduleAt,
+        allowSensitiveData
+      });
+      setSchedules((current) => [...current.filter((item) => item.id !== schedule.id), schedule]);
+      setIsBroadcastOpen(false);
+      void window.desktop.releaseBroadcastViews();
+      openSettings("automation");
+      setSettingsMessage(`Scheduled for ${formatDateTime(schedule.nextRunAt)}.`);
+    } catch (scheduleError) {
+      setBroadcastError(
+        scheduleError instanceof Error
+          ? scheduleError.message
+          : "The schedule could not be saved."
+      );
+    } finally {
+      setIsBroadcasting(false);
+    }
+  };
+
+  const performBroadcastAction = (allowSensitiveData = false) => {
+    if (broadcastTiming === "scheduled") {
+      void saveSchedule(allowSensitiveData);
+    } else {
+      void sendBroadcast(allowSensitiveData);
+    }
+  };
+
   const submitBroadcast = (event: React.FormEvent) => {
     event.preventDefault();
-    const prompt = broadcastPrompt.trim();
-    if (!prompt || broadcastAccountIds.length < 1) {
+    const prompt = broadcastPrompt;
+    if (!prompt.trim() || broadcastAccountIds.length < 1) {
       setBroadcastError("Choose at least one connected account and enter a prompt.");
       return;
     }
-    const protectedTargetSelected = accounts.some(
-      (account) =>
-        broadcastAccountIds.includes(account.id) &&
-        preferences.dataProtectionByService[account.serviceId]
-    );
-    const findings = protectedTargetSelected ? scanSensitiveData(prompt) : [];
+    const protectedContents = accounts
+      .filter(
+        (account) =>
+          broadcastAccountIds.includes(account.id) &&
+          preferences.dataProtectionByService[account.serviceId]
+      )
+      .map((account) => {
+        const settings = accountSettings.find((item) => item.accountId === account.id);
+        return settings?.includeContextInPrompts && settings.contextNote.trim()
+          ? `${settings.contextNote}\n${prompt}`
+          : prompt;
+      });
+    const findings =
+      protectedContents.length > 0 ? scanSensitiveData(protectedContents.join("\n")) : [];
     if (findings.length > 0) {
       setBroadcastError(null);
       setSensitiveFindings(findings);
       return;
     }
-    void sendBroadcast();
+    performBroadcastAction();
+  };
+
+  const updateSelectedAccountSettings = (
+    update: Partial<AccountProviderSettings>
+  ) => {
+    if (!settingsAccountId) {
+      return;
+    }
+    setAccountSettings((current) => {
+      const existing =
+        current.find((settings) => settings.accountId === settingsAccountId) ??
+        defaultAccountSettings(settingsAccountId);
+      return [
+        ...current.filter((settings) => settings.accountId !== settingsAccountId),
+        { ...existing, ...update }
+      ];
+    });
+    setSettingsMessage(null);
+  };
+
+  const saveSelectedAccountSettings = async () => {
+    if (!selectedAccountSettings) {
+      return;
+    }
+    setSettingsError(null);
+    setSettingsMessage(null);
+    try {
+      const saved = await window.desktop.updateAccountSettings(settingsAccountId, {
+        defaultBroadcastMode: selectedAccountSettings.defaultBroadcastMode,
+        contextNote: selectedAccountSettings.contextNote,
+        includeContextInPrompts: selectedAccountSettings.includeContextInPrompts,
+        zoomPercent: selectedAccountSettings.zoomPercent
+      });
+      setAccountSettings((current) => [
+        ...current.filter((settings) => settings.accountId !== saved.accountId),
+        saved
+      ]);
+      setSettingsMessage("Account settings saved locally.");
+    } catch (saveError) {
+      setSettingsError(
+        saveError instanceof Error ? saveError.message : "Unable to save account settings."
+      );
+    }
+  };
+
+  const reuseHistoryEntry = (entry: PromptHistoryEntry) => {
+    const existingIds = entry.accountIds.filter((id) =>
+      accounts.some((account) => account.id === id)
+    );
+    setBroadcastPrompt(entry.prompt);
+    setBroadcastMode(entry.mode);
+    setBroadcastAccountIds(
+      (existingIds.length > 0 ? existingIds : sortAccounts(accounts).map((a) => a.id))
+        .slice(0, MAX_BROADCAST_TARGETS)
+    );
+    setBroadcastTiming("now");
+    setIsSettingsOpen(false);
+    setIsBroadcastOpen(true);
+  };
+
+  const selectBroadcastTemplate = (templateId: string) => {
+    setBroadcastTemplateId(templateId);
+    setBroadcastTemplateValues(emptyTemplateValues());
+    setBroadcastTemplateError(null);
+  };
+
+  const applyBroadcastTemplate = () => {
+    if (!selectedBroadcastTemplate) {
+      setBroadcastTemplateError("Choose a prompt template first.");
+      return;
+    }
+    if (missingBroadcastTemplateVariables.length > 0) {
+      setBroadcastTemplateError(
+        `Enter a value for ${missingBroadcastTemplateVariables.join(", ")} before applying.`
+      );
+      return;
+    }
+    if (renderedTemplatePreview.length > 12_000) {
+      setBroadcastTemplateError(
+        "The rendered prompt exceeds 12,000 characters. Shorten one or more variable values."
+      );
+      return;
+    }
+    setBroadcastPrompt(renderedTemplatePreview);
+    setBroadcastTemplateError(null);
+    setSensitiveFindings([]);
+    requestAnimationFrame(() => broadcastPromptRef.current?.focus());
+  };
+
+  const usePromptTemplate = (template: PromptTemplate) => {
+    openBroadcast();
+    setBroadcastTemplateId(template.id);
+    setBroadcastTemplateValues(emptyTemplateValues());
+    setBroadcastTemplateError(null);
+    setIsSettingsOpen(false);
+  };
+
+  const startCreatingTemplate = () => {
+    setEditingTemplateId(null);
+    setTemplateDraft(emptyTemplateInput());
+    setTemplateFormMode("create");
+    setSettingsError(null);
+    setSettingsMessage(null);
+  };
+
+  const startEditingTemplate = (template: PromptTemplate) => {
+    setEditingTemplateId(template.id);
+    setTemplateDraft({
+      name: template.name,
+      category: template.category ?? "",
+      description: template.description ?? "",
+      content: template.content
+    });
+    setTemplateFormMode("edit");
+    setSettingsError(null);
+    setSettingsMessage(null);
+  };
+
+  const cancelTemplateForm = () => {
+    setTemplateFormMode(null);
+    setEditingTemplateId(null);
+    setTemplateDraft(emptyTemplateInput());
+  };
+
+  const savePromptTemplate = async () => {
+    setIsSavingTemplate(true);
+    setSettingsError(null);
+    setSettingsMessage(null);
+    try {
+      const saved =
+        templateFormMode === "edit" && editingTemplateId
+          ? await window.desktop.updatePromptTemplate(editingTemplateId, templateDraft)
+          : await window.desktop.createPromptTemplate(templateDraft);
+      setPromptTemplates((current) => [
+        ...current.filter((template) => template.id !== saved.id),
+        saved
+      ]);
+      cancelTemplateForm();
+      setSettingsMessage(
+        templateFormMode === "edit"
+          ? "Prompt template updated locally."
+          : "Prompt template saved locally."
+      );
+    } catch (saveError) {
+      setSettingsError(
+        saveError instanceof Error ? saveError.message : "Unable to save prompt template."
+      );
+    } finally {
+      setIsSavingTemplate(false);
+    }
+  };
+
+  const deletePromptTemplate = async (template: PromptTemplate) => {
+    setSettingsError(null);
+    setSettingsMessage(null);
+    try {
+      const deleted = await window.desktop.deletePromptTemplate(template.id);
+      if (!deleted) {
+        return;
+      }
+      setPromptTemplates((current) =>
+        current.filter((item) => item.id !== template.id)
+      );
+      if (editingTemplateId === template.id) {
+        cancelTemplateForm();
+      }
+      if (broadcastTemplateId === template.id) {
+        setBroadcastTemplateId("");
+        setBroadcastTemplateValues(emptyTemplateValues());
+      }
+      setSettingsMessage("Prompt template deleted.");
+    } catch (deleteError) {
+      setSettingsError(
+        deleteError instanceof Error
+          ? deleteError.message
+          : "Unable to delete prompt template."
+      );
+    }
+  };
+
+  const settingsCopy: Record<SettingsPage, { kicker: string; description: string }> = {
+    preferences: {
+      kicker: "Preferences",
+      description: "Customize appearance and accessibility."
+    },
+    accounts: {
+      kicker: "Per-account controls",
+      description: "Set provider defaults, reusable context, and page zoom."
+    },
+    templates: {
+      kicker: "Prompt library",
+      description: "Create reusable prompts with variables and use them in Broadcast."
+    },
+    memory: {
+      kicker: "Local prompt memory",
+      description: "Reuse prompts sent through Broadcast and Automation."
+    },
+    automation: {
+      kicker: "Scheduled prompts",
+      description: "Manage prompts that run while AI Workspace is open."
+    },
+    shortcuts: {
+      kicker: "Keyboard",
+      description: "Navigate directly to each provider without duplicating shortcuts."
+    },
+    "data-protection": {
+      kicker: "Privacy controls",
+      description: "Warn before sensitive data leaves this device."
+    },
+    usage: {
+      kicker: "Insights",
+      description: "Understand which AI services you use most."
+    }
   };
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${isSidebarCollapsed ? "is-sidebar-collapsed" : ""}`}>
       <aside className="sidebar">
         <header className="brand">
           <div className="brand-mark" aria-hidden="true">A</div>
-          <div>
+          <div className="brand-copy">
             <strong>AI Workspace</strong>
             <span>Your AI apps in one place</span>
           </div>
+          <button
+            aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className="sidebar-toggle"
+            onClick={() => setIsSidebarCollapsed((collapsed) => !collapsed)}
+            title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            type="button"
+          >
+            <Icon name={isSidebarCollapsed ? "arrow-right" : "arrow-left"} size={17} />
+          </button>
         </header>
 
         <div className="sidebar-primary-action">
           <button className="connect-button" onClick={() => openConnectDialog()} type="button">
             <Icon name="plus" />
-            <span>Connect an AI account</span>
+            <span className="sidebar-action-copy">
+              <strong>Add AI account</strong>
+              <small>Connect a subscription</small>
+            </span>
             <kbd>Ctrl N</kbd>
           </button>
           <button
@@ -733,21 +1392,58 @@ export default function App() {
             disabled={accounts.length === 0}
             onClick={openBroadcast}
             ref={broadcastButtonRef}
+            title="Broadcast a prompt"
             type="button"
           >
-            <Icon name="sparkles" />
+            <Icon name="send" />
             <span>Broadcast a prompt</span>
             <small>{accounts.length > 0 ? `${accounts.length} ready` : "Connect first"}</small>
           </button>
+          <button
+            className="research-button"
+            disabled={accounts.length === 0}
+            onClick={() => setIsResearchOpen(true)}
+            ref={researchButtonRef}
+            title="Open Research Lab"
+            type="button"
+          >
+            <Icon name="sparkles" />
+            <span>Open Research Lab</span>
+            <small>Compare & improve</small>
+          </button>
+          <button
+            className="use-cases-button"
+            onClick={() => setIsUseCasesOpen(true)}
+            ref={useCasesButtonRef}
+            title="Open Use Cases"
+            type="button"
+          >
+            <Icon name="grid" />
+            <span>Use Cases</span>
+            <small>GEO available</small>
+          </button>
         </div>
 
-        <nav className="service-list" aria-label="AI accounts">
-          <div className="section-title">
-            <span>Your accounts</span>
-            <span>{accounts.length}</span>
-          </div>
+        <div className="accounts-drawer">
+          <button
+            aria-expanded={isAccountListOpen}
+            className="accounts-drawer-toggle"
+            onClick={() => setIsAccountListOpen((open) => !open)}
+            title="Connected accounts"
+            type="button"
+          >
+            <Icon name="users" size={17} />
+            <span>Connected accounts</span>
+            <span className="accounts-count">{accounts.length}</span>
+            <Icon name={isAccountListOpen ? "chevron-down" : "chevron-right"} size={15} />
+          </button>
+        </div>
 
-          {SERVICES.map((service) => {
+        {isAccountListOpen ? (
+          <nav className="service-list" aria-label="AI accounts">
+          {SERVICES.filter((service) =>
+            accounts.some((account) => account.serviceId === service.id)
+          ).map((service) => {
             const serviceAccounts = sortAccounts(
               accounts.filter((account) => account.serviceId === service.id)
             );
@@ -794,20 +1490,20 @@ export default function App() {
                       </div>
                     ))}
                   </div>
-                ) : (
-                  <button
-                    className="empty-service-action"
-                    onClick={() => openConnectDialog(service.id)}
-                    type="button"
-                  >
-                    <Icon name="plus" size={14} />
-                    Add {service.name}
-                  </button>
-                )}
+                ) : null}
               </section>
             );
           })}
-        </nav>
+          {accounts.length === 0 ? (
+            <div className="accounts-empty">
+              <span>No accounts connected yet.</span>
+              <button onClick={() => openConnectDialog()} type="button">Add account</button>
+            </div>
+          ) : null}
+          </nav>
+        ) : (
+          <div className="sidebar-spacer" />
+        )}
 
         <footer className="sidebar-footer">
           <div className="security-card">
@@ -920,6 +1616,19 @@ export default function App() {
             ) : null}
           </div>
         </header>
+
+        {showPerplexityAuthGuidance ? (
+          <aside className="provider-auth-guidance" aria-label="Perplexity sign-in guidance">
+            <div>
+              <strong>Do you normally use “Continue with Google”?</strong>
+              <span>
+                You can try it here. If Google rejects the embedded window, use Perplexity’s
+                email sign-in with the same Gmail address instead.
+              </span>
+            </div>
+            <button onClick={dismissAuthGuidance} type="button">Got it</button>
+          </aside>
+        ) : null}
 
         {error ? (
           <div className="error-banner" role="alert">
@@ -1048,6 +1757,7 @@ export default function App() {
                       <span>{service.name}</span>
                       <span className="option-check"><Icon name="check" size={14} /></span>
                     </label>
+
                   ))}
                 </div>
               </fieldset>
@@ -1114,20 +1824,10 @@ export default function App() {
             <header className="settings-header">
               <div>
                 <span className="dialog-kicker">
-                  {settingsPage === "preferences"
-                    ? "Preferences"
-                    : settingsPage === "data-protection"
-                      ? "Privacy controls"
-                      : "Insights"}
+                  {settingsCopy[settingsPage].kicker}
                 </span>
                 <h2 id="settings-title">Settings</h2>
-                <p>
-                  {settingsPage === "preferences"
-                    ? "Customize the appearance and make the interface more accessible."
-                    : settingsPage === "data-protection"
-                      ? "Warn before personal or company-sensitive data leaves this device."
-                      : "Understand which AI services you use most."}
-                </p>
+                <p>{settingsCopy[settingsPage].description}</p>
               </div>
               <button
                 aria-label="Close settings"
@@ -1141,36 +1841,31 @@ export default function App() {
             </header>
 
             <nav className="settings-tabs" aria-label="Settings sections">
-              <button
-                aria-current={settingsPage === "preferences" ? "page" : undefined}
-                className={settingsPage === "preferences" ? "is-active" : ""}
-                onClick={() => setSettingsPage("preferences")}
-                type="button"
-              >
-                <Icon name="settings" size={16} />
-                Preferences
-              </button>
-              <button
-                aria-current={settingsPage === "data-protection" ? "page" : undefined}
-                className={settingsPage === "data-protection" ? "is-active" : ""}
-                onClick={() => setSettingsPage("data-protection")}
-                type="button"
-              >
-                <Icon name="shield" size={16} />
-                Data protection
-              </button>
-              <button
-                aria-current={settingsPage === "usage" ? "page" : undefined}
-                className={settingsPage === "usage" ? "is-active" : ""}
-                onClick={() => setSettingsPage("usage")}
-                type="button"
-              >
-                <Icon name="chart" size={16} />
-                Usage
-              </button>
+              {SETTINGS_TABS.map((tab) => (
+                <button
+                  aria-current={settingsPage === tab.page ? "page" : undefined}
+                  className={settingsPage === tab.page ? "is-active" : ""}
+                  key={tab.page}
+                  onClick={() => {
+                    setSettingsPage(tab.page);
+                    setSettingsError(null);
+                    setSettingsMessage(null);
+                  }}
+                  type="button"
+                >
+                  <Icon name={tab.icon} size={15} />
+                  {tab.label}
+                </button>
+              ))}
             </nav>
 
             <div className="settings-content">
+              {settingsError ? (
+                <div className="usage-error" role="alert">{settingsError}</div>
+              ) : null}
+              {settingsMessage ? (
+                <div className="settings-message" role="status">{settingsMessage}</div>
+              ) : null}
               {settingsPage === "preferences" ? (
                 <>
               <section className="settings-section" aria-labelledby="appearance-heading">
@@ -1221,6 +1916,16 @@ export default function App() {
                   <div>
                     <span className="preference-label"><Icon name="type" size={16} /> Text size</span>
                     <small>Enlarges labels and app controls.</small>
+                  </div>
+
+                  <div className="preference-row">
+                    <div>
+                      <span className="preference-label">Interface zoom</span>
+                      <small>
+                        Reflows the whole app. Use Ctrl/Cmd +, Ctrl/Cmd −, or Ctrl/Cmd 0.
+                      </small>
+                    </div>
+                    <strong className="zoom-value">{preferences.appZoomPercent}%</strong>
                   </div>
                   <div className="segmented-control" aria-label="Text size">
                     {([
@@ -1299,6 +2004,464 @@ export default function App() {
                 </div>
               </section>
                 </>
+              ) : settingsPage === "accounts" ? (
+                <section className="account-settings-panel" aria-labelledby="account-settings-heading">
+                  <div className="settings-section-heading">
+                    <span className="settings-section-icon"><Icon name="sparkles" size={18} /></span>
+                    <div>
+                      <h3 id="account-settings-heading">Provider settings per account</h3>
+                      <p>These settings are stored locally and apply only to the selected account.</p>
+                    </div>
+                  </div>
+                  {accounts.length === 0 || !selectedAccountSettings ? (
+                    <p className="empty-settings">Connect an account to configure provider settings.</p>
+                  ) : (
+                    <>
+                      <label className="settings-field">
+                        <span>Account</span>
+                        <select
+                          onChange={(event) => setSettingsAccountId(event.target.value)}
+                          value={settingsAccountId}
+                        >
+                          {sortAccounts(accounts).map((account) => (
+                            <option key={account.id} value={account.id}>
+                              {account.label} · {SERVICE_BY_ID.get(account.serviceId)?.name}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <div className="account-settings-grid">
+                        <label className="settings-field">
+                          <span>Default Broadcast mode</span>
+                          <select
+                            onChange={(event) =>
+                              updateSelectedAccountSettings({
+                                defaultBroadcastMode: event.target.value as BroadcastMode
+                              })
+                            }
+                            value={selectedAccountSettings.defaultBroadcastMode}
+                          >
+                            <option value="standard">Standard prompt</option>
+                            <option value="deep-research">Deep Research</option>
+                          </select>
+                        </label>
+                        <label className="settings-field">
+                          <span>Provider page zoom</span>
+                          <select
+                            onChange={(event) =>
+                              updateSelectedAccountSettings({
+                                zoomPercent: Number(event.target.value)
+                              })
+                            }
+                            value={selectedAccountSettings.zoomPercent}
+                          >
+                            {[75, 90, 100, 110, 125, 150, 175, 200].map((zoom) => (
+                              <option key={zoom} value={zoom}>{zoom}%</option>
+                            ))}
+                          </select>
+                        </label>
+                      </div>
+                      <label className="settings-field context-field">
+                        <span>Saved context</span>
+                        <textarea
+                          maxLength={4_000}
+                          onChange={(event) =>
+                            updateSelectedAccountSettings({ contextNote: event.target.value })
+                          }
+                          placeholder="Optional project background or instructions to prepend to Broadcast and scheduled prompts..."
+                          rows={6}
+                          value={selectedAccountSettings.contextNote}
+                        />
+                        <small>{selectedAccountSettings.contextNote.length} / 4,000</small>
+                      </label>
+                      <div className="preference-row">
+                        <div>
+                          <span className="preference-label">Include saved context</span>
+                          <small>
+                            Clearly prepends this note to prompts sent through Broadcast and Automation.
+                            It never reads provider responses.
+                          </small>
+                        </div>
+                        <button
+                          aria-checked={selectedAccountSettings.includeContextInPrompts}
+                          aria-label={`Include saved context for ${selectedSettingsAccount?.label ?? "account"}`}
+                          className="switch"
+                          onClick={() =>
+                            updateSelectedAccountSettings({
+                              includeContextInPrompts:
+                                !selectedAccountSettings.includeContextInPrompts
+                            })
+                          }
+                          role="switch"
+                          type="button"
+                        >
+                          <span />
+                        </button>
+                      </div>
+                      <button
+                        className="inline-primary-button"
+                        onClick={() => void saveSelectedAccountSettings()}
+                        type="button"
+                      >
+                        Save account settings
+                      </button>
+                    </>
+                  )}
+                </section>
+              ) : settingsPage === "templates" ? (
+                <section className="template-panel" aria-labelledby="template-heading">
+                  <div className="settings-section-heading">
+                    <span className="settings-section-icon"><Icon name="type" size={18} /></span>
+                    <div>
+                      <h3 id="template-heading">Prompt templates</h3>
+                      <p>
+                        Add variables such as {"{{topic}}"} and fill them in before applying a
+                        template.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="template-toolbar">
+                    <label>
+                      <span className="sr-only">Search prompt templates</span>
+                      <input
+                        aria-label="Search prompt templates"
+                        onChange={(event) => setTemplateSearch(event.target.value)}
+                        placeholder="Search templates, categories, or content"
+                        type="search"
+                        value={templateSearch}
+                      />
+                    </label>
+                    <button
+                      className="inline-primary-button"
+                      onClick={startCreatingTemplate}
+                      type="button"
+                    >
+                      <Icon name="plus" size={15} /> New template
+                    </button>
+                  </div>
+
+                  {templateFormMode ? (
+                    <div className="template-editor" aria-label={`${templateFormMode === "edit" ? "Edit" : "Create"} prompt template`}>
+                      <div className="template-editor-grid">
+                        <label className="settings-field">
+                          <span>Name</span>
+                          <input
+                            maxLength={80}
+                            onChange={(event) =>
+                              setTemplateDraft((current) => ({
+                                ...current,
+                                name: event.target.value
+                              }))
+                            }
+                            ref={templateNameRef}
+                            required
+                            value={templateDraft.name}
+                          />
+                        </label>
+                        <label className="settings-field">
+                          <span>Category (optional)</span>
+                          <input
+                            maxLength={80}
+                            onChange={(event) =>
+                              setTemplateDraft((current) => ({
+                                ...current,
+                                category: event.target.value
+                              }))
+                            }
+                            value={templateDraft.category ?? ""}
+                          />
+                        </label>
+                      </div>
+                      <label className="settings-field">
+                        <span>Description (optional)</span>
+                        <input
+                          maxLength={500}
+                          onChange={(event) =>
+                            setTemplateDraft((current) => ({
+                              ...current,
+                              description: event.target.value
+                            }))
+                          }
+                          value={templateDraft.description ?? ""}
+                        />
+                      </label>
+                      <label className="settings-field context-field">
+                        <span>Prompt content</span>
+                        <textarea
+                          maxLength={12_000}
+                          onChange={(event) =>
+                            setTemplateDraft((current) => ({
+                              ...current,
+                              content: event.target.value
+                            }))
+                          }
+                          placeholder="Write a prompt. Use {{variableName}} for values to fill in later."
+                          required
+                          rows={7}
+                          value={templateDraft.content}
+                        />
+                        <small>
+                          {templateDraft.content.length.toLocaleString()} / 12,000
+                          {extractTemplateVariables(templateDraft.content).length > 0
+                            ? ` · Variables: ${extractTemplateVariables(templateDraft.content).join(", ")}`
+                            : ""}
+                        </small>
+                      </label>
+                      <div className="template-editor-actions">
+                        <button
+                          className="reset-button"
+                          disabled={isSavingTemplate}
+                          onClick={cancelTemplateForm}
+                          type="button"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          className="inline-primary-button"
+                          disabled={
+                            isSavingTemplate ||
+                            !templateDraft.name.trim() ||
+                            !templateDraft.content.trim()
+                          }
+                          onClick={() => void savePromptTemplate()}
+                          type="button"
+                        >
+                          {isSavingTemplate
+                            ? "Saving..."
+                            : templateFormMode === "edit"
+                              ? "Update template"
+                              : "Save template"}
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {promptTemplates.length === 0 ? (
+                    <p className="empty-settings">
+                      No prompt templates yet. Create one to reuse it across any connected account.
+                    </p>
+                  ) : filteredPromptTemplates.length === 0 ? (
+                    <p className="empty-settings">No templates match your search.</p>
+                  ) : (
+                    <div className="template-list">
+                      {[...filteredPromptTemplates]
+                        .sort((left, right) => left.name.localeCompare(right.name))
+                        .map((template) => {
+                          const variables = extractTemplateVariables(template.content);
+                          return (
+                            <article key={template.id}>
+                              <header>
+                                <div>
+                                  <strong>{template.name}</strong>
+                                  {template.category ? <span>{template.category}</span> : null}
+                                </div>
+                                <time dateTime={template.updatedAt}>
+                                  Updated {formatDateTime(template.updatedAt)}
+                                </time>
+                              </header>
+                              {template.description ? <p>{template.description}</p> : null}
+                              <pre>{template.content}</pre>
+                              {variables.length > 0 ? (
+                                <small>Variables: {variables.join(", ")}</small>
+                              ) : null}
+                              <footer>
+                                <button
+                                  disabled={accounts.length === 0}
+                                  onClick={() => usePromptTemplate(template)}
+                                  title={
+                                    accounts.length === 0
+                                      ? "Connect an account before using a template"
+                                      : undefined
+                                  }
+                                  type="button"
+                                >
+                                  Use in Broadcast
+                                </button>
+                                <button onClick={() => startEditingTemplate(template)} type="button">
+                                  Edit
+                                </button>
+                                <button
+                                  className="danger-link"
+                                  onClick={() => void deletePromptTemplate(template)}
+                                  type="button"
+                                >
+                                  Delete
+                                </button>
+                              </footer>
+                            </article>
+                          );
+                        })}
+                    </div>
+                  )}
+                </section>
+              ) : settingsPage === "memory" ? (
+                <section className="memory-panel" aria-labelledby="memory-heading">
+                  <div className="settings-section-heading">
+                    <span className="settings-section-icon"><Icon name="history" size={18} /></span>
+                    <div>
+                      <h3 id="memory-heading">Prompt history</h3>
+                      <p>
+                        Stores prompts submitted by this app—not provider replies—locally on this
+                        device.
+                      </p>
+                    </div>
+                  </div>
+                  {promptHistory.length === 0 ? (
+                    <p className="empty-settings">Broadcast or schedule a prompt to build reusable history.</p>
+                  ) : (
+                    <div className="memory-list">
+                      {promptHistory.slice(0, 100).map((entry) => (
+                        <article key={entry.id}>
+                          <div>
+                            <strong>{entry.source === "schedule" ? "Scheduled prompt" : "Broadcast prompt"}</strong>
+                            <time dateTime={entry.createdAt}>{formatDateTime(entry.createdAt)}</time>
+                          </div>
+                          <p>{entry.prompt}</p>
+                          <footer>
+                            <span>{entry.accountIds.length} account{entry.accountIds.length === 1 ? "" : "s"} · {entry.mode}</span>
+                            <button onClick={() => reuseHistoryEntry(entry)} type="button">Reuse</button>
+                          </footer>
+                        </article>
+                      ))}
+                    </div>
+                  )}
+                </section>
+              ) : settingsPage === "automation" ? (
+                <section className="automation-panel" aria-labelledby="automation-heading">
+                  <div className="settings-section-heading">
+                    <span className="settings-section-icon"><Icon name="clock" size={18} /></span>
+                    <div>
+                      <h3 id="automation-heading">Scheduled prompts</h3>
+                      <p>
+                        Runs due prompts only while AI Workspace is open. Delivery status is
+                        recorded without reading responses.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    className="inline-primary-button"
+                    disabled={accounts.length === 0}
+                    onClick={() => {
+                      setIsSettingsOpen(false);
+                      openBroadcast();
+                      setBroadcastTiming("scheduled");
+                    }}
+                    type="button"
+                  >
+                    <Icon name="plus" size={15} /> New schedule
+                  </button>
+                  {schedules.length === 0 ? (
+                    <p className="empty-settings">No scheduled prompts yet.</p>
+                  ) : (
+                    <div className="schedule-list">
+                      {[...schedules]
+                        .sort((left, right) =>
+                          (left.nextRunAt ?? "z").localeCompare(right.nextRunAt ?? "z")
+                        )
+                        .map((schedule) => (
+                          <article key={schedule.id}>
+                            <div className="schedule-heading">
+                              <div>
+                                <strong>{schedule.prompt}</strong>
+                                <span>
+                                  {schedule.recurrence} · {schedule.accountIds.length} account
+                                  {schedule.accountIds.length === 1 ? "" : "s"}
+                                </span>
+                              </div>
+                              <button
+                                aria-checked={schedule.enabled}
+                                aria-label={`${schedule.enabled ? "Pause" : "Enable"} schedule`}
+                                className="switch"
+                                disabled={schedule.nextRunAt === null}
+                                onClick={() => {
+                                  setSettingsError(null);
+                                  void window.desktop
+                                    .setScheduleEnabled(schedule.id, !schedule.enabled)
+                                    .then((updated) =>
+                                      setSchedules((current) =>
+                                        current.map((item) =>
+                                          item.id === updated.id ? updated : item
+                                        )
+                                      )
+                                    )
+                                    .catch((scheduleError: unknown) =>
+                                      setSettingsError(
+                                        scheduleError instanceof Error
+                                          ? scheduleError.message
+                                          : "Unable to update schedule."
+                                      )
+                                    );
+                                }}
+                                role="switch"
+                                type="button"
+                              >
+                                <span />
+                              </button>
+                            </div>
+                            <dl>
+                              <div><dt>Next</dt><dd>{formatDateTime(schedule.nextRunAt)}</dd></div>
+                              <div><dt>Last</dt><dd>{formatDateTime(schedule.lastRunAt)}</dd></div>
+                              <div>
+                                <dt>Outcome</dt>
+                                <dd>{schedule.lastOutcome?.message ?? "Not run yet"}</dd>
+                              </div>
+                            </dl>
+                            <button
+                              className="danger-link"
+                              onClick={() => {
+                                setSettingsError(null);
+                                void window.desktop
+                                  .removeSchedule(schedule.id)
+                                  .then(() =>
+                                    setSchedules((current) =>
+                                      current.filter((item) => item.id !== schedule.id)
+                                    )
+                                  )
+                                  .catch((scheduleError: unknown) =>
+                                    setSettingsError(
+                                      scheduleError instanceof Error
+                                        ? scheduleError.message
+                                        : "Unable to remove schedule."
+                                    )
+                                  );
+                              }}
+                              type="button"
+                            >
+                              Remove
+                            </button>
+                          </article>
+                        ))}
+                    </div>
+                  )}
+                </section>
+              ) : settingsPage === "shortcuts" ? (
+                <section className="shortcut-panel" aria-labelledby="shortcut-heading">
+                  <div className="settings-section-heading">
+                    <span className="settings-section-icon"><Icon name="keyboard" size={18} /></span>
+                    <div>
+                      <h3 id="shortcut-heading">Provider navigation</h3>
+                      <p>
+                        Ctrl on Windows/Linux and Command on macOS. Each shortcut opens the most
+                        recently used account for that provider.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="shortcut-list">
+                    {SERVICES.map((service, index) => (
+                      <article key={service.id}>
+                        <ServiceLogo serviceId={service.id} size="small" />
+                        <strong>{service.name}</strong>
+                        <kbd>Ctrl/⌘ + {index + 1}</kbd>
+                      </article>
+                    ))}
+                    <article><Icon name="plus" size={17} /><strong>Connect account</strong><kbd>Ctrl/⌘ + N</kbd></article>
+                    <article><Icon name="settings" size={17} /><strong>Settings</strong><kbd>Ctrl/⌘ + ,</kbd></article>
+                    <article><Icon name="type" size={17} /><strong>Zoom in</strong><kbd>Ctrl/⌘ + +</kbd></article>
+                    <article><Icon name="type" size={17} /><strong>Zoom out</strong><kbd>Ctrl/⌘ + −</kbd></article>
+                    <article><Icon name="refresh" size={17} /><strong>Reset zoom</strong><kbd>Ctrl/⌘ + 0</kbd></article>
+                  </div>
+                </section>
               ) : settingsPage === "data-protection" ? (
                 <section className="data-protection-settings" aria-labelledby="data-protection-heading">
                   <div className="data-protection-intro">
@@ -1406,7 +2569,10 @@ export default function App() {
                           aria-pressed={usagePeriod === period}
                           className={usagePeriod === period ? "is-active" : ""}
                           key={period}
-                          onClick={() => setUsagePeriod(period)}
+                          onClick={() => {
+                            setUsagePeriod(period);
+                            setSettingsMessage(null);
+                          }}
                           type="button"
                         >
                           {period} days
@@ -1515,30 +2681,69 @@ export default function App() {
                 >
                   Enable all alerts
                 </button>
-              ) : (
+              ) : settingsPage === "memory" ? (
                 <button
                   className="reset-button"
-                  disabled={isUsageLoading}
+                  disabled={promptHistory.length === 0}
                   onClick={() => {
-                    setIsUsageLoading(true);
-                    setUsageError(null);
-                    void window.desktop.resetUsage(usagePeriod)
-                      .then((result) => {
-                        setUsageSummary(result.summary);
+                    setSettingsError(null);
+                    void window.desktop
+                      .clearPromptHistory()
+                      .then(() => {
+                        setPromptHistory([]);
+                        setSettingsMessage("Prompt history cleared.");
                       })
-                      .catch((resetError: unknown) => {
-                        setUsageError(
-                          resetError instanceof Error
-                            ? resetError.message
-                            : "Unable to reset usage data."
-                        );
-                      })
-                      .finally(() => setIsUsageLoading(false));
+                      .catch((historyError: unknown) =>
+                        setSettingsError(
+                          historyError instanceof Error
+                            ? historyError.message
+                            : "Unable to clear prompt history."
+                        )
+                      );
                   }}
                   type="button"
                 >
-                  Reset usage data
+                  Clear prompt history
                 </button>
+              ) : settingsPage === "usage" ? (
+                <div className="usage-footer-actions">
+                  <button
+                    className="reset-button"
+                    disabled={isUsageLoading || isUsageExporting}
+                    onClick={() => {
+                      setIsUsageLoading(true);
+                      setUsageError(null);
+                      setSettingsMessage(null);
+                      void window.desktop.resetUsage(usagePeriod)
+                        .then((result) => {
+                          setUsageSummary(result.summary);
+                        })
+                        .catch((resetError: unknown) => {
+                          setUsageError(
+                            resetError instanceof Error
+                              ? resetError.message
+                              : "Unable to reset usage data."
+                          );
+                        })
+                        .finally(() => setIsUsageLoading(false));
+                    }}
+                    type="button"
+                  >
+                    Reset usage data
+                  </button>
+                  <button
+                    aria-busy={isUsageExporting}
+                    aria-label={`Export ${usagePeriod}-day usage analytics as CSV`}
+                    className="export-button"
+                    disabled={isUsageLoading || isUsageExporting}
+                    onClick={() => void exportUsageCsv()}
+                    type="button"
+                  >
+                    {isUsageExporting ? "Exporting CSV…" : "Export CSV"}
+                  </button>
+                </div>
+              ) : (
+                <span />
               )}
               <button className="done-button" onClick={closeSettings} type="button">
                 Done
@@ -1563,7 +2768,7 @@ export default function App() {
               <div>
                 <span className="dialog-kicker">Multi-provider</span>
                 <h2 id="broadcast-title">Broadcast a prompt</h2>
-                <p>Send the same request to multiple connected AI accounts.</p>
+                <p>Send now or schedule the same request across connected accounts.</p>
               </div>
               <button
                 aria-label="Close broadcast composer"
@@ -1613,24 +2818,47 @@ export default function App() {
 
               <fieldset className="broadcast-targets">
                 <legend>2. Select connected accounts</legend>
+                <small
+                  className={`broadcast-target-limit ${
+                    broadcastTargetLimitReached ? "is-reached" : ""
+                  }`}
+                  id="broadcast-target-limit"
+                  role={broadcastTargetLimitReached ? "status" : undefined}
+                >
+                  {broadcastTargetLimitReached
+                    ? "8 of 8 selected. Deselect an account before choosing another."
+                    : `${broadcastAccountIds.length} of 8 selected`}
+                </small>
                 <div>
                   {accounts.map((account) => {
                     const checked = broadcastAccountIds.includes(account.id);
+                    const unavailable =
+                      !checked && broadcastTargetLimitReached;
                     const result = broadcastResults.find(
                       (delivery) => delivery.accountId === account.id
                     );
                     return (
-                      <label className={checked ? "is-selected" : ""} key={account.id}>
+                      <label
+                        aria-disabled={unavailable}
+                        className={`${checked ? "is-selected" : ""} ${
+                          unavailable ? "is-disabled" : ""
+                        }`}
+                        key={account.id}
+                      >
                         <input
+                          aria-describedby="broadcast-target-limit"
                           checked={checked}
-                          disabled={isBroadcasting}
+                          disabled={isBroadcasting || unavailable}
                           onChange={() => {
                             setSensitiveFindings([]);
-                            setBroadcastAccountIds((current) =>
-                              current.includes(account.id)
-                                ? current.filter((accountId) => accountId !== account.id)
-                                : [...current, account.id]
-                            );
+                            setBroadcastAccountIds((current) => {
+                              if (current.includes(account.id)) {
+                                return current.filter((accountId) => accountId !== account.id);
+                              }
+                              return current.length < MAX_BROADCAST_TARGETS
+                                ? [...current, account.id]
+                                : current;
+                            });
                           }}
                           type="checkbox"
                         />
@@ -1654,8 +2882,87 @@ export default function App() {
                 </div>
               </fieldset>
 
+              <section className="broadcast-template" aria-labelledby="broadcast-template-heading">
+                <div className="broadcast-template-heading">
+                  <div>
+                    <strong id="broadcast-template-heading">3. Start from a template (optional)</strong>
+                    <span>Variable values stay local and are applied only to this prompt.</span>
+                  </div>
+                  <select
+                    aria-label="Prompt template"
+                    disabled={isBroadcasting || promptTemplates.length === 0}
+                    onChange={(event) => selectBroadcastTemplate(event.target.value)}
+                    value={broadcastTemplateId}
+                  >
+                    <option value="">
+                      {promptTemplates.length === 0 ? "No templates available" : "Choose a template"}
+                    </option>
+                    {[...promptTemplates]
+                      .sort((left, right) => left.name.localeCompare(right.name))
+                      .map((template) => (
+                        <option key={template.id} value={template.id}>
+                          {template.category ? `${template.category} · ` : ""}
+                          {template.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+                {selectedBroadcastTemplate ? (
+                  <div className="broadcast-template-workspace">
+                    {broadcastTemplateVariables.length > 0 ? (
+                      <div className="template-variable-grid">
+                        {broadcastTemplateVariables.map((variable) => (
+                          <label key={variable}>
+                            <span>{variable}</span>
+                            <input
+                              aria-label={`Value for ${variable}`}
+                              disabled={isBroadcasting}
+                              maxLength={4_000}
+                              onChange={(event) => {
+                                setBroadcastTemplateValues((current) => {
+                                  const next = Object.assign(emptyTemplateValues(), current);
+                                  next[variable] = event.target.value;
+                                  return next;
+                                });
+                                setBroadcastTemplateError(null);
+                              }}
+                              value={getTemplateValue(broadcastTemplateValues, variable) ?? ""}
+                            />
+                          </label>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="template-no-variables">This template has no variables.</p>
+                    )}
+                    <div className="template-preview">
+                      <span>Preview</span>
+                      <pre>{renderedTemplatePreview}</pre>
+                    </div>
+                    {missingBroadcastTemplateVariables.length > 0 ? (
+                      <p className="template-validation" role="alert">
+                        Required: enter {missingBroadcastTemplateVariables.join(", ")} before
+                        applying this template.
+                      </p>
+                    ) : null}
+                    {broadcastTemplateError ? (
+                      <p className="template-validation" role="alert">
+                        {broadcastTemplateError}
+                      </p>
+                    ) : null}
+                    <button
+                      className="template-apply-button"
+                      disabled={isBroadcasting}
+                      onClick={applyBroadcastTemplate}
+                      type="button"
+                    >
+                      Apply to prompt
+                    </button>
+                  </div>
+                ) : null}
+              </section>
+
               <label className="broadcast-prompt">
-                <span>3. Write one prompt</span>
+                <span>4. Write or edit the prompt</span>
                 <textarea
                   disabled={isBroadcasting}
                   maxLength={12_000}
@@ -1670,6 +2977,58 @@ export default function App() {
                 />
                 <small>{broadcastPrompt.length.toLocaleString()} / 12,000</small>
               </label>
+
+              <fieldset className="broadcast-timing">
+                <legend>5. Choose delivery time</legend>
+                <div className="segmented-control" aria-label="Delivery time">
+                  <button
+                    aria-pressed={broadcastTiming === "now"}
+                    className={broadcastTiming === "now" ? "is-active" : ""}
+                    onClick={() => setBroadcastTiming("now")}
+                    type="button"
+                  >
+                    Send now
+                  </button>
+                  <button
+                    aria-pressed={broadcastTiming === "scheduled"}
+                    className={broadcastTiming === "scheduled" ? "is-active" : ""}
+                    onClick={() => setBroadcastTiming("scheduled")}
+                    type="button"
+                  >
+                    Schedule
+                  </button>
+                </div>
+                {broadcastTiming === "scheduled" ? (
+                  <div className="schedule-fields">
+                    <label>
+                      <span>First run</span>
+                      <input
+                        min={toDateTimeInput(new Date(Date.now() + 60_000))}
+                        onChange={(event) => setScheduleAt(event.target.value)}
+                        type="datetime-local"
+                        value={scheduleAt}
+                      />
+                    </label>
+                    <label>
+                      <span>Repeat</span>
+                      <select
+                        onChange={(event) =>
+                          setScheduleRecurrence(event.target.value as ScheduleRecurrence)
+                        }
+                        value={scheduleRecurrence}
+                      >
+                        <option value="once">Once</option>
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                      </select>
+                    </label>
+                    <small>
+                      Runs while AI Workspace is open. Missed recurring runs advance to the next
+                      future interval; one-time runs execute once on the next app start.
+                    </small>
+                  </div>
+                ) : null}
+              </fieldset>
 
               {broadcastMode === "deep-research" ? (
                 <div className="broadcast-notice">
@@ -1714,10 +3073,10 @@ export default function App() {
                     </button>
                     <button
                       className="send-anyway-button"
-                      onClick={() => void sendBroadcast()}
+                      onClick={() => performBroadcastAction(true)}
                       type="button"
                     >
-                      Send anyway
+                      {broadcastTiming === "scheduled" ? "Schedule anyway" : "Send anyway"}
                     </button>
                   </div>
                 </section>
@@ -1728,7 +3087,15 @@ export default function App() {
               ) : null}
 
               {broadcastResults.length > 0 ? (
-                <div className="broadcast-results" aria-live="polite">
+                <section className="broadcast-comparison" aria-live="polite">
+                  <header>
+                    <strong>Side-by-side delivery comparison</strong>
+                    <span>
+                      Open each official provider page to review its response. AI Workspace does
+                      not extract or compare response content.
+                    </span>
+                  </header>
+                  <div className="broadcast-results">
                   {broadcastResults.map((result) => {
                     const account = accounts.find(
                       (candidate) => candidate.id === result.accountId
@@ -1746,7 +3113,9 @@ export default function App() {
                         <button
                           onClick={() => {
                             setIsBroadcastOpen(false);
-                            void selectAccount(account.id);
+                            void selectAccount(account.id).then(() =>
+                              window.desktop.releaseBroadcastViews()
+                            );
                           }}
                           type="button"
                         >
@@ -1755,14 +3124,16 @@ export default function App() {
                       </article>
                     );
                   })}
-                </div>
+                  </div>
+                </section>
               ) : null}
             </div>
 
             <footer className="broadcast-footer">
               <span>
-                Prompts are inserted locally into official provider pages. AI Workspace never
-                reads or stores the responses.
+                Prompts and schedules are stored locally. Provider responses are never
+                automatically read or scraped; only content you explicitly paste into Research
+                Lab is stored.
               </span>
               <button
                 className="done-button"
@@ -1774,11 +3145,43 @@ export default function App() {
                 type="submit"
               >
                 <Icon name="send" size={16} />
-                {isBroadcasting ? "Broadcasting..." : `Send to ${broadcastAccountIds.length}`}
+                {isBroadcasting
+                  ? broadcastTiming === "scheduled"
+                    ? "Scheduling..."
+                    : "Broadcasting..."
+                  : broadcastTiming === "scheduled"
+                    ? `Schedule for ${broadcastAccountIds.length}`
+                    : `Send to ${broadcastAccountIds.length}`}
               </button>
             </footer>
           </form>
         </div>
+      ) : null}
+      {isResearchOpen ? (
+        <ResearchWorkspace
+          accounts={accounts}
+          onRegisterCloseHandler={(handler) => {
+            researchCloseHandlerRef.current = handler;
+          }}
+          onClose={closeResearch}
+          onOpenAccount={(accountId) => {
+            setIsResearchOpen(false);
+            void selectAccount(accountId).then(() => window.desktop.releaseBroadcastViews());
+          }}
+        />
+      ) : null}
+      {isUseCasesOpen ? (
+        <UseCasesWorkspace
+          accounts={accounts}
+          onClose={closeUseCases}
+          onOpenAccount={(accountId) => {
+            setIsUseCasesOpen(false);
+            void selectAccount(accountId);
+          }}
+          onRegisterCloseHandler={(handler) => {
+            useCasesCloseHandlerRef.current = handler;
+          }}
+        />
       ) : null}
     </div>
   );

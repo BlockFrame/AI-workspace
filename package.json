@@ -2,7 +2,7 @@
   "name": "ai-workspace",
   "version": "1.0.0",
   "private": true,
-  "description": "A secure desktop workspace for managing, comparing, and broadcasting prompts across multiple AI services.",
+  "description": "A local-first desktop workspace for multi-provider AI research, answer optimization, and supervised GEO studies.",
   "author": "blockframe",
   "license": "MIT",
   "repository": {
@@ -13,12 +13,20 @@
   "bugs": {
     "url": "https://github.com/blockframe/AI-workspace/issues"
   },
+  "engines": {
+    "node": ">=20 <23",
+    "npm": ">=10"
+  },
+  "packageManager": "npm@10.9.3",
   "keywords": [
     "electron",
     "react",
     "typescript",
     "ai",
     "desktop",
+    "research",
+    "geo",
+    "local-first",
     "chatgpt",
     "claude",
     "gemini",
@@ -35,7 +43,11 @@
     "build:renderer": "vite build",
     "build": "npm run typecheck && npm run build:main && npm run build:renderer",
     "start": "electron .",
-    "package": "npm run build && electron-builder"
+    "package": "npm run build && electron-builder",
+    "package:win": "npm run build && electron-builder --win",
+    "package:mac": "npm run build && electron-builder --mac",
+    "package:linux": "npm run build && electron-builder --linux",
+    "package:all": "npm run build && electron-builder -mwl"
   },
   "dependencies": {
     "@lobehub/icons-static-svg": "^1.94.0",
@@ -70,9 +82,67 @@
     "mac": {
       "category": "public.app-category.productivity",
       "target": [
-        "dmg",
-        "zip"
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "darkModeSupport": true,
+      "identity": null,
+      "minimumSystemVersion": "10.15.0"
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
       ]
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "tar.gz",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Utility;Network;",
+      "maintainer": "blockframe <blockframe@users.noreply.github.com>",
+      "synopsis": "AI Workspace Desktop App",
+      "description": "A secure desktop workspace for managing, comparing, and broadcasting prompts across multiple AI services."
+    },
+    "deb": {
+      "priority": "optional"
     },
     "win": {
       "target": "nsis"

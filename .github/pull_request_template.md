@@ -1,63 +1,33 @@
-## Description
+## What changed
 
-Brief summary of the changes. Link any related issues: Closes #123
+<!-- Describe the user problem and the resulting behavior. -->
 
-## Type of Change
+## Why
 
-- [ ] Bug fix (non-breaking change that fixes an issue)
-- [ ] New feature (non-breaking change that adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to change)
-- [ ] Documentation update
+<!-- Explain the decision, not only the implementation. -->
 
-## Changes Made
+## Validation
 
-Describe what you changed:
-- Change 1
-- Change 2
-- Change 3
+<!-- List commands and manual scenarios actually completed. -->
 
-## Testing Performed
+- [ ] `npm run typecheck`
+- [ ] `npm run build`
+- [ ] Light and dark themes checked when UI changed
+- [ ] Compact and large layouts checked when UI changed
+- [ ] Authenticated providers checked when adapters changed
+- [ ] Draft/recovery behavior checked when persistence changed
 
-How did you test this? Include steps to verify:
+## Privacy and security
 
-1. Started `npm run dev`
-2. Navigated to [component/feature]
-3. Tested [action]
-4. Verified [expected behavior]
+<!-- Does this read provider content, send new data, add a host, change storage, or alter IPC? -->
 
-## Checklist
+- [ ] No privacy/security behavior changed
+- [ ] Relevant documentation was updated
 
-- [ ] I've run `npm run typecheck` and there are no TypeScript errors
-- [ ] I've run `npm run build` and it completes successfully
-- [ ] I've tested in light mode
-- [ ] I've tested in dark mode
-- [ ] I've tested keyboard navigation
-- [ ] I've tested on all 8 AI providers (if applicable)
-- [ ] I've tested the packaged app (if significant changes)
-- [ ] I've updated documentation (if needed)
-- [ ] My commits follow the commit message guidelines
+## Visual changes
 
-## Screenshots / Videos
+<!-- Add screenshots or a short recording for UI changes. -->
 
-If this PR includes UI changes, please add screenshots or videos:
+## Notes
 
-## Breaking Changes
-
-List any breaking changes and migration instructions (if applicable):
-
-## Dependencies
-
-Did this PR add or update any dependencies? List them:
-
-- [ ] No dependency changes
-- [ ] Updated existing: (list packages)
-- [ ] Added new: (list packages)
-
-## Additional Notes
-
-Anything else reviewers should know?
-
----
-
-**Related Issue:** Closes #
-**Author:** @your-username
+<!-- Known limitations, rollout considerations, or follow-up work. -->

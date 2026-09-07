@@ -1,443 +1,250 @@
 <div align="center">
 
-# 🚀 AI Workspace
+<img src="./docs/assets/ai-workspace-hero.svg" alt="AI Workspace - compare AI providers, optimize answers, and run GEO studies" width="100%" />
 
-<p align="center">
-  <strong>A professional desktop application for seamlessly managing and comparing multiple AI services in one unified workspace.</strong>
-</p>
+<br />
 
-![AI Workspace](https://img.shields.io/badge/AI%20Workspace-v1.0.0-blue?style=for-the-badge&logo=rocket)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178c6?style=for-the-badge&logo=typescript&logoColor=fff)
-![React](https://img.shields.io/badge/React-19-61dafb?style=for-the-badge&logo=react&logoColor=fff)
-![Electron](https://img.shields.io/badge/Electron-43.3.0-9feaf9?style=for-the-badge&logo=electron&logoColor=000)
-![Windows](https://img.shields.io/badge/Windows-10+-0078d4?style=for-the-badge&logo=windows&logoColor=fff)
-![License MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)
-![0 Vulnerabilities](https://img.shields.io/badge/Security-0%20Vulnerabilities-green?style=for-the-badge)
+[![Build and Test](https://github.com/BlockFrame/AI-workspace/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/BlockFrame/AI-workspace/actions/workflows/build.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-5d55c7.svg)](./LICENSE)
+[![Electron](https://img.shields.io/badge/Electron-43-47848f?logo=electron&logoColor=white)](https://www.electronjs.org/)
+[![React](https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux-343a46)](#platform-support)
 
-<br/>
+**A local-first desktop workspace for using multiple AI subscriptions as one repeatable research system.**
 
-**[Features](#-features) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Contributing](#-contributing) • [License](#-license)**
+[Get started](#quick-start) · [Features](#what-you-can-do) · [Architecture](./docs/architecture.md) · [Workflows](./docs/workflows.md) · [Security](./SECURITY.md)
 
 </div>
 
 ---
 
-## ✨ Highlights
+## Why AI Workspace?
 
-<table>
-  <tr>
-    <td align="center">
-      <h3>🎯 8 AI Providers</h3>
-      ChatGPT, Claude, Perplexity, Gemini, Z.AI, DeepSeek, Kimi & Mistral
-    </td>
-    <td align="center">
-      <h3>🔄 Broadcast Prompts</h3>
-      Send to multiple services simultaneously & compare responses
-    </td>
-    <td align="center">
-      <h3>📊 Usage Analytics</h3>
-      Local 7/30-day tracking with visual dashboards
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <h3>🔐 Enterprise Security</h3>
-      Electron hardening, context isolation, CSP
-    </td>
-    <td align="center">
-      <h3>🛡️ Sensitive Data Detection</h3>
-      PII/credentials alerts before sending
-    </td>
-    <td align="center">
-      <h3>♿ Accessibility First</h3>
-      WCAG 2.1 AA, dark/light/high-contrast modes
-    </td>
-  </tr>
-</table>
+AI Workspace is designed for a practical workflow: ask the same question to several AI
+providers, inspect their different answers, combine the strongest evidence, and continue
+working from a better result.
 
----
+It wraps official provider websites in isolated desktop sessions. It does **not** require a
+shared AI Workspace account, cloud backend, or hidden synthesis model.
 
-## 🎯 Overview
+```mermaid
+flowchart LR
+    Q[One question] --> B[Broadcast]
+    B --> P1[Provider A]
+    B --> P2[Provider B]
+    B --> P3[Provider C]
+    P1 --> R[Research Lab]
+    P2 --> R
+    P3 --> R
+    R --> O[Optimization prompt]
+    O --> N[Better answer or next round]
+```
 
-**AI Workspace** is a feature-rich desktop application that aggregates eight popular AI services into a single, unified interface. Switch seamlessly between accounts, broadcast the same prompt to multiple providers simultaneously, and monitor usage patterns—all with enterprise-grade security and accessibility.
+## What you can do
 
-### Supported AI Services
+| Area | Purpose |
+| --- | --- |
+| **Multi-account workspace** | Keep independent signed-in sessions for multiple accounts and providers. |
+| **Broadcast** | Deliver one prompt to selected provider accounts using Standard or provider-supported Deep Research modes. |
+| **Research Lab** | Paste and compare responses, select useful sources, write notes, generate an editable optimization prompt, and continue through linked rounds. |
+| **Use Cases / GEO** | Import CSV or TXT question sets, run supervised provider batches, capture new answers and citations, and review a question-by-provider matrix. |
+| **Prompt library** | Save reusable templates with `{{variables}}`, preview substitutions, and apply them explicitly to Broadcast. |
+| **Local context and history** | Keep opt-in account context, prompt history, schedules, and local usage summaries. |
+| **Data protection** | Detect common sensitive-data patterns locally before a prompt is sent. |
+| **Accessible desktop UI** | Collapsible navigation, responsive layouts, light/dark themes, high contrast, reduced motion, text scaling, and application zoom. |
 
-- 🤖 **ChatGPT** – OpenAI's flagship conversational AI
-- 🧠 **Claude** – Anthropic's advanced reasoning AI
-- 🔍 **Perplexity** – Real-time web-informed AI search
-- ✨ **Gemini** – Google's multimodal AI
-- ⚡ **Z.AI** – High-performance inference
-- 🚀 **DeepSeek** – Advanced reasoning with DeepThink mode
-- 🤖 **Kimi** – Conversational AI assistant
-- 🌟 **Mistral Vibe** – Fast generative AI
+### Supported providers
 
-## ✨ Key Features
+| Provider | Embedded session | Broadcast adapter | GEO capture |
+| --- | :---: | :---: | :---: |
+| ChatGPT | Yes | Yes | Supervised |
+| Claude | Yes | Yes | Supervised |
+| Perplexity | Yes | Yes | Supervised |
+| Gemini | Yes | Yes | Supervised |
+| Z.AI | Yes | Yes | Supervised |
+| DeepSeek Chat | Yes | Yes | Supervised |
+| Kimi Chat | Yes | Yes | Supervised |
+| Mistral Vibe | Yes | Yes | Supervised |
 
-<div align="center">
+Provider websites change independently. Adapter compatibility must therefore be verified
+against authenticated accounts before each release.
 
-### 🎮 Core Features
-| Feature | Description |
-|---------|-------------|
-| 🔀 **Multi-Account Switching** | Instant account switching across all 8 providers with persistent sessions |
-| 📢 **Broadcast Prompts** | Send identical prompts to multiple services simultaneously |
-| 📊 **Usage Analytics** | Track provider usage with 7/30-day reports & visual dashboards |
-| 🛡️ **Sensitive Data Detection** | Real-time PII/credentials detection (email, phone, card numbers, etc.) |
-| 🎨 **Accessibility** | Full WCAG 2.1 AA compliance with 4 theme modes |
-| 🔒 **Zero Telemetry** | All data stored locally—zero cloud sync, zero external analytics |
+## Product boundaries
 
-### 🔐 Security Features
-- **Isolated Chromium Partitions** – Each account uses dedicated persistent sessions
-- **Electron Hardening** – Context isolation, sandbox mode, CSP enforcement
-- **Service-Specific Auth Allowlists** – Granular control over trusted domains
-- **Per-Provider Protection** – Enable alerts for all or configure individually
-- **Security Audit Verified** – 0 vulnerabilities, independently reviewed
+AI Workspace deliberately keeps different workflows separate:
 
-### 📱 Accessibility
-- **Dark/Light/High-Contrast Modes** – Full theme support
-- **Text Scaling** – Adjustable font sizes
-- **Keyboard Navigation** – Complete keyboard support
-- **Focus Management** – Accessible dialogs with proper focus handling
-- **Reduced Motion** – Respect for users preferring reduced animations
+- **Normal browsing** does not collect provider responses.
+- **Broadcast** inserts and submits prompts but reports delivery status only.
+- **Research Lab** stores only text the user explicitly pastes.
+- **GEO** is the explicit exception: after a user starts a supervised study, it captures only
+  the new responses produced for that study.
+- **No AI Workspace cloud** receives prompts, responses, cookies, or analytics.
+- **No token or billing estimates** are inferred from subscription websites.
 
-</div>
+Read the complete [privacy and security model](./docs/privacy-and-security.md).
 
-## 🚀 Quick Start
+## Quick start
 
-### 📋 Prerequisites
+### Requirements
 
-- **Node.js** 18+ and npm 9+
-- **Windows 10+** (macOS/Linux possible but untested)
+- Node.js 20 or 22
+- npm
+- Git
+- A supported desktop OS
 
-### ⚡ Installation & Development
-
-<details>
-<summary><strong>For Users (Packaged App)</strong></summary>
-
-1. Download the latest **Windows installer** from [Releases](https://github.com/BlockFrame/AI-workspace/releases)
-2. Run the installer
-3. Launch "AI Workspace" from Start Menu
-4. Add your first account and start comparing AI services!
-
-</details>
-
-<details>
-<summary><strong>For Developers (From Source)</strong></summary>
+### Run from source
 
 ```bash
-# 1. Clone the repository
 git clone https://github.com/BlockFrame/AI-workspace.git
 cd AI-workspace
-
-# 2. Install dependencies
-npm install
-
-# 3. Run in development mode (with hot reload)
+npm ci
 npm run dev
+```
 
-# The app opens automatically. Try:
-# - Add accounts for each AI service
-# - Switch between providers
-# - Test Broadcast feature
-# - Monitor Usage dashboard
+The development command starts Vite, the Electron main-process TypeScript watcher, and
+Electron together.
 
-# 4. Build for production
+### Validate a change
+
+```bash
+npm run typecheck
 npm run build
+```
 
-# 5. Create Windows installer
+### Build an installer
+
+```bash
+# Current operating system
 npm run package
 
-# Output: release/AI-workspace-1.0.0.exe
+# Explicit targets
+npm run package:win
+npm run package:mac
+npm run package:linux
 ```
 
-</details>
+Generated packages are written to `release/`.
 
-## 📁 Project Structure
+## Core workflows
 
-```
-ai-workspace/
-├── electron/                    # Electron main process
-│   ├── main.ts                 # App lifecycle, IPC handlers, session management
-│   └── preload.ts              # Secure renderer-to-main bridge
-├── src/
-│   ├── renderer/               # React UI (Vite)
-│   │   ├── App.tsx             # Main app component (1400+ lines)
-│   │   ├── styles.css          # All styling + themes (1400+ lines)
-│   │   ├── global.d.ts         # TypeScript declarations
-│   │   └── assets.d.ts         # SVG import declarations
-│   └── shared/
-│       ├── types.ts            # TypeScript interfaces (DesktopApi, UsageSummary, etc.)
-│       └── services.ts         # Service registry (all 8 AI providers)
-├── index.html                  # Entry point
-├── package.json                # Dependencies, build config, Electron Builder
-├── tsconfig.json               # Root TypeScript config
-├── tsconfig.main.json          # Electron main process config
-├── tsconfig.renderer.json      # Renderer process config
-├── vite.config.ts              # Vite + CSP configuration
-├── .github/                    # GitHub Actions workflows and templates
-│   ├── workflows/
-│   │   ├── build.yml           # CI/CD build validation
-│   │   └── release.yml         # Automated release packaging
-│   ├── ISSUE_TEMPLATE/
-│   │   ├── bug_report.md
-│   │   └── feature_request.md
-│   └── pull_request_template.md
-├── LICENSE                     # MIT License
-├── CONTRIBUTING.md             # Contribution guidelines
-├── SECURITY.md                 # Vulnerability disclosure policy
-├── CHANGELOG.md                # Release notes and version history
-└── .gitignore                  # Git exclusions (Node, build artifacts, OS files)
-```
+### Compare and improve answers
 
-## 🛠️ Development
+1. Connect at least two provider accounts.
+2. Open **Broadcast** and send the same question.
+3. Copy the relevant provider answers into a **Research Lab** round.
+4. Select the strongest responses and add review notes.
+5. Generate an editable optimization prompt.
+6. Send it to the preferred provider and save the improved answer.
+7. Add a linked round when the research needs to continue.
 
-### 📦 Build Scripts
+### Run a GEO study
 
-<table>
-<tr><th>Command</th><th>Description</th></tr>
-<tr><td><code>npm run dev</code></td><td>⚡ Development mode with hot reload (Vite + Electron)</td></tr>
-<tr><td><code>npm run typecheck</code></td><td>✅ TypeScript type validation only</td></tr>
-<tr><td><code>npm run build</code></td><td>🔨 Production build (main + renderer)</td></tr>
-<tr><td><code>npm run build:main</code></td><td>🔨 Build Electron main process only</td></tr>
-<tr><td><code>npm run build:renderer</code></td><td>🔨 Build React UI only (Vite)</td></tr>
-<tr><td><code>npm start</code></td><td>🚀 Start packaged app</td></tr>
-<tr><td><code>npm run package</code></td><td>📦 Create Windows installer (.exe)</td></tr>
-</table>
+1. Open **Use Cases** and select **GEO visibility study**.
+2. Import a CSV/TXT file or paste one question per line.
+3. Select provider accounts and choose Standard or Deep Research mode.
+4. Keep the app open while questions run sequentially.
+5. Review captured responses, citations, blocks, and uncertain results.
+6. Correct results manually where needed and mark verified answers.
 
-### 🏗️ Project Architecture
+See [Workflow guide](./docs/workflows.md) for file formats, state transitions, and operational
+limits.
 
-<div align="center">
+## Keyboard and zoom
 
-```
-ai-workspace/
-├── 📁 electron/              Electron main process
-│   ├── main.ts              (~1300 lines) App lifecycle, IPC, sessions
-│   └── preload.ts           Secure renderer bridge
-│
-├── 📁 src/
-│   ├── renderer/            React UI (Vite)
-│   │   ├── App.tsx          (~1400 lines) Complete UI + state
-│   │   ├── styles.css       (~1400 lines) Themes + accessibility
-│   │   └── assets/          SVG icons for all 8 providers
-│   │
-│   └── shared/
-│       ├── types.ts         TypeScript interfaces
-│       └── services.ts      Service registry
-│
-├── 📁 .github/
-│   ├── workflows/           CI/CD automation
-│   └── templates/           Issue & PR templates
-│
-└── 📄 Configuration
-    ├── package.json         Dependencies & build config
-    ├── tsconfig.json        TypeScript root config
-    └── vite.config.ts       Vite + CSP settings
-```
+| Action | Windows / Linux | macOS |
+| --- | --- | --- |
+| Connect an account | `Ctrl+N` | `Command+N` |
+| Open Settings | `Ctrl+,` | `Command+,` |
+| Open provider 1-8 | `Ctrl+1` ... `Ctrl+8` | `Command+1` ... `Command+8` |
+| Zoom interface in/out | `Ctrl++` / `Ctrl+-` | `Command++` / `Command+-` |
+| Reset interface zoom | `Ctrl+0` | `Command+0` |
 
-</div>
+Interface zoom is persisted from 75% to 200% and triggers responsive reflow. Provider-page
+zoom remains a separate per-account setting.
 
-### 🔍 Key Files
+## Platform support
 
-| File | Purpose | Size |
-|------|---------|------|
-| `electron/main.ts` | Core lifecycle, IPC, sessions, broadcast adapters | 1,300 lines |
-| `src/renderer/App.tsx` | React UI (onboarding, sidebar, broadcast, usage) | 1,400 lines |
-| `src/renderer/styles.css` | Complete styling + 4 themes + accessibility | 1,400 lines |
-| `src/shared/types.ts` | TypeScript interfaces for IPC contract | 200 lines |
-| `src/shared/services.ts` | Service registry (8 providers metadata) | 100 lines |
+| Platform | Package formats | CI build |
+| --- | --- | :---: |
+| Windows x64 | NSIS `.exe` | Yes |
+| macOS x64 / Apple Silicon | `.dmg`, `.zip` | Yes |
+| Linux x64 | `.AppImage`, `.deb`, `.tar.gz` | Yes |
 
-## 📊 Usage Analytics
+Packages are currently unsigned. macOS notarization and production signing require project
+credentials and are intentionally not configured in the repository.
 
-All usage metrics are stored **locally** in `~/.ai-workspace/usage.json`:
+## Sign-in limitations
 
-<details>
-<summary><strong>View Sample Data</strong></summary>
+Google can reject OAuth inside embedded desktop browsers. AI Workspace keeps the Google option
+available and applies the same browser identity to provider views and authentication popups. If
+Google still rejects the flow, use Perplexity's email verification with the same Gmail address.
 
-```json
-{
-  "chatgpt": {
-    "2026-08-07": { "openCount": 2, "switchCount": 1, "focusedTime": 1860 }
-  },
-  "claude": {
-    "2026-08-07": { "openCount": 1, "switchCount": 0, "focusedTime": 300 }
-  }
-}
+The same error in a normal Chrome/Edge window may instead indicate a corporate firewall, proxy,
+security product, or Google Workspace policy. An external browser session cannot currently be
+imported safely into the isolated Electron session.
+
+## Repository map
+
+```text
+.
+|-- electron/
+|   |-- main.ts                 # trusted orchestration, stores, provider views
+|   |-- preload.ts              # contextBridge and typed IPC implementation
+|   |-- research-store.ts       # Research Lab persistence and validation
+|   `-- geo-store.ts            # GEO persistence and state transitions
+|-- src/
+|   |-- renderer/
+|   |   |-- App.tsx             # desktop shell, Broadcast, Settings
+|   |   |-- ResearchWorkspace.tsx
+|   |   |-- UseCasesWorkspace.tsx
+|   |   `-- styles.css
+|   `-- shared/
+|       |-- types.ts            # DesktopApi and shared contracts
+|       |-- services.ts         # provider registry
+|       |-- research-types.ts
+|       |-- geo-types.ts
+|       |-- geo-import.ts
+|       `-- sensitive-data.ts
+|-- docs/
+|   |-- architecture.md
+|   |-- workflows.md
+|   |-- privacy-and-security.md
+|   `-- assets/
+|-- .github/workflows/          # CI and tagged releases
+`-- package.json
 ```
 
-**Tracked Metrics:**
-- `openCount` – Times the service was opened
-- `switchCount` – Times you switched to this service  
-- `focusedTime` – Seconds the window was active and visible
+## Documentation
 
-**NOT Tracked (Privacy First):**
-- ❌ Token usage or API costs
-- ❌ Conversation content
-- ❌ External telemetry
-- ❌ Network requests
+- [Architecture](./docs/architecture.md) - process boundaries, IPC, persistence, and runtime flows
+- [Workflow guide](./docs/workflows.md) - Broadcast, Research Lab, GEO, and authentication
+- [Privacy and security](./docs/privacy-and-security.md) - data handling, threat boundaries, and reporting
+- [Contributing](./CONTRIBUTING.md) - development and provider-adapter guidance
+- [Changelog](./CHANGELOG.md) - released and unreleased changes
+- [Security policy](./SECURITY.md) - supported versions and private reporting
 
-</details>
+## Known constraints
 
-## 🔐 Security & Privacy
+- Provider DOM changes can break prompt or capture selectors.
+- GEO is intentionally sequential and supervised; it is not a high-volume crawler.
+- Scheduled prompts run only while AI Workspace is open.
+- Subscription web apps do not expose reliable token or billing information.
+- Google OAuth may still reject an embedded provider session and requires manual compatibility testing.
+- Real provider compatibility requires manual testing with authenticated accounts.
 
-### 🏠 Data Location
-| Category | Storage | Cloud Sync | Telemetry |
-|----------|---------|-----------|-----------|
-| **Accounts** | `~/.ai-workspace/accounts.json` | ❌ None | ❌ Zero |
-| **Usage** | `~/.ai-workspace/usage.json` | ❌ None | ❌ Zero |
-| **Settings** | `~/.ai-workspace/config.json` | ❌ None | ❌ Zero |
-| **Conversations** | Provider servers only | ✅ Provider manages | ✅ Provider only |
+## Contributing
 
-### 🔐 Authentication
-- Each provider's login page loads in an isolated partition
-- Credentials managed by provider (you control them)
-- App never sees or stores passwords/tokens
-- OAuth cookies stored in isolated persistent sessions
+Contributions are welcome. Start with [CONTRIBUTING.md](./CONTRIBUTING.md), keep changes focused,
+and run:
 
-### 🚫 Permissions
-- **Desktop files:** Only `~/.ai-workspace/` directory
-- **Network:** HTTPS only, service-specific domains
-- **Window:** Single-window model, no external processes
-- **Clipboard:** Manual only (no programmatic access)
-
-### ✅ Security Audit
-- ✅ Electron 43.3.0 hardening verified
-- ✅ Zero npm vulnerabilities (audit: `npm audit`)
-- ✅ Navigation and popup guards effective
-- ✅ Isolated sessions prevent cross-account leakage
-- ✅ CSP enforced in production
-
-📄 See [SECURITY.md](SECURITY.md) for detailed vulnerability disclosure policy.
-
----
-
-## 🌍 Platform Support
-
-| Platform | Status | Notes |
-|----------|--------|-------|
-| **Windows** | ✅ **Fully Supported** | Tested on Windows 10+, installer included |
-| **macOS** | ⚠️ Possible | Requires dmg/zip build config (untested) |
-| **Linux** | ⚠️ Possible | Requires AppImage/deb config (untested) |
-
-Currently, **Windows packaging** is tested and included in releases. macOS/Linux contributions welcome!
-
----
-
-## 📚 Documentation
-
-<div align="center">
-
-| Document | Purpose |
-|----------|---------|
-| **[README.md](README.md)** | Project overview & quick start |
-| **[ARCHITECTURE.md](ARCHITECTURE.md)** | Technical design & deep dive |
-| **[SECURITY.md](SECURITY.md)** | Security policy & vulnerability reporting |
-| **[CONTRIBUTING.md](CONTRIBUTING.md)** | Development guidelines & commit conventions |
-| **[CHANGELOG.md](CHANGELOG.md)** | Release notes & version history |
-| **[LICENSE](LICENSE)** | MIT License |
-
-</div>
-
-## ❓ FAQ
-
-<details>
-<summary><strong>Q: Is my data shared with anyone?</strong></summary>
-<strong>A:</strong> No. All data (accounts, usage, settings) is stored locally on your device. Zero telemetry, zero cloud sync.
-</details>
-
-<details>
-<summary><strong>Q: Can I use multiple accounts with the same AI provider?</strong></summary>
-<strong>A:</strong> Yes! Each account has its own isolated session. Switch between them instantly with zero cookie leakage.
-</details>
-
-<details>
-<summary><strong>Q: Does the app work offline?</strong></summary>
-<strong>A:</strong> No, you need internet to access the AI services. The app itself is offline-capable but won't load providers without connectivity.
-</details>
-
-<details>
-<summary><strong>Q: Can I broadcast to just some providers?</strong></summary>
-<strong>A:</strong> Yes! Select which accounts to include before sending. Only selected providers receive the prompt.
-</details>
-
-<details>
-<summary><strong>Q: What if a provider updates but isn't detected?</strong></summary>
-<strong>A:</strong> The app will report "Unsupported" rather than fail silently. See [CONTRIBUTING.md](CONTRIBUTING.md) to help update adapters.
-</details>
-
-<details>
-<summary><strong>Q: How accurate is usage tracking?</strong></summary>
-<strong>A:</strong> Tracks active time when (1) window is focused, (2) account is active, (3) provider is visible. Useful for trend analysis but approximate.
-</details>
-
-<details>
-<summary><strong>Q: Can I add more AI providers?</strong></summary>
-<strong>A:</strong> Absolutely! See [CONTRIBUTING.md](CONTRIBUTING.md). Process: register service → add auth domains → create broadcast adapter.
-</details>
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Here's how to get started:
-
-1. **Fork** the repository
-2. **Create** a feature branch: `git checkout -b feature/amazing-feature`
-3. **Commit** changes: `git commit -m "Add amazing feature"`
-4. **Push** to branch: `git push origin feature/amazing-feature`
-5. **Open** a Pull Request
-
-📖 See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines on:
-- Code style & TypeScript conventions
-- Commit message format
-- Testing requirements
-- PR review process
-
----
-
-## 🐛 Reporting Issues
-
-Found a bug or have a feature request?
-
-| Issue Type | Action |
-|-----------|--------|
-| **🔒 Security Issue** | Follow [SECURITY.md](SECURITY.md) for responsible disclosure |
-| **🐛 Bug Report** | Use [Bug Report Template](https://github.com/BlockFrame/AI-workspace/issues/new?template=bug_report.md) |
-| **✨ Feature Request** | Use [Feature Request Template](https://github.com/BlockFrame/AI-workspace/issues/new?template=feature_request.md) |
-
----
-
-## 📜 License & Citation
-
-This project is licensed under the **[MIT License](LICENSE)** – free for personal, commercial, and research use.
-
-If you use AI Workspace in research or projects, please cite:
-
-```bibtex
-@software{ai_workspace_2026,
-  title={AI Workspace: A Desktop Application for Multi-Provider AI Aggregation},
-  author={BlockFrame},
-  year={2026},
-  url={https://github.com/BlockFrame/AI-workspace}
-}
+```bash
+npm run typecheck
+npm run build
 ```
 
----
+For vulnerabilities, follow [SECURITY.md](./SECURITY.md) instead of opening a public issue.
 
-## ⚖️ Disclaimer
+## License
 
-**AI Workspace is an independent project** and is **not affiliated** with OpenAI, Anthropic, Google, Mistral AI, or any other AI service provider. It provides a unified interface to access their public web applications.
-
----
-
-<div align="center">
-
-### 🌟 Enjoyed this project?
-Leave a ⭐ on GitHub and share with friends!
-
-[Star Repository](https://github.com/BlockFrame/AI-workspace) • [Report Issue](https://github.com/BlockFrame/AI-workspace/issues) • [View Releases](https://github.com/BlockFrame/AI-workspace/releases)
-
-**Made with ❤️ by the AI Workspace community**
-
-*Last updated: August 2026*
-
-</div>
+Released under the [MIT License](./LICENSE).

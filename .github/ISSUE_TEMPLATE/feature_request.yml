@@ -1,0 +1,55 @@
+name: Feature request
+description: Propose a user problem or repeatable workflow
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe the workflow or limitation before proposing implementation details.
+      placeholder: When comparing several provider answers, I need to...
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: What should a successful experience allow the user to accomplish?
+    validations:
+      required: true
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Product area
+      options:
+        - Accounts and provider navigation
+        - Broadcast
+        - Research Lab
+        - Use Cases / GEO
+        - Templates or schedules
+        - Accessibility or interface
+        - Packaging or platform support
+        - New provider evaluation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Current workaround or alternatives
+  - type: textarea
+    id: privacy
+    attributes:
+      label: Data and privacy considerations
+      description: Explain whether the feature reads provider content, sends new data, needs cloud storage, or changes account isolation.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues and documentation.
+          required: true
+        - label: I described a problem rather than only a preferred implementation.
+          required: true

@@ -10,8 +10,28 @@ permissions:
 
 jobs:
   build-release:
-    name: Build Release
-    runs-on: windows-latest
+    name: Build Release (${{ matrix.platform }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - platform: Windows
+            os: windows-latest
+            package-cmd: npm run package:win -- --publish never
+            artifact-pattern: release/*.exe
+          - platform: macOS
+            os: macos-latest
+            package-cmd: npm run package:mac -- --publish never
+            artifact-pattern: |
+              release/*.dmg
+              release/*.zip
+          - platform: Linux
+            os: ubuntu-latest
+            package-cmd: npm run package:linux -- --publish never
+            artifact-pattern: |
+              release/*.AppImage
+              release/*.deb
+              release/*.tar.gz
 
     steps:
       - name: Checkout code
@@ -28,24 +48,26 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests
-        run: npm run typecheck
-
-      - name: Build application
-        run: npm run build
-
-      - name: Package for Windows
-        run: npm run package -- --publish never
+      - name: Build and package application
+        run: ${{ matrix.package-cmd }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
-          files: release/*.exe
+          files: |
+            release/*.exe
+            release/*.dmg
+            release/*.zip
+            release/*.AppImage
+            release/*.deb
+            release/*.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload release assets
         uses: actions/upload-artifact@v4
         with:
-          name: release-${{ github.ref_name }}
-          path: release/*.exe
+          name: release-${{ matrix.platform }}-${{ github.ref_name }}
+          path: ${{ matrix.artifact-pattern }}
           retention-days: 90

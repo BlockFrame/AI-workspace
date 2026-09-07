@@ -8,10 +8,11 @@ on:
 
 jobs:
   build:
-    name: Build & Type Check
-    runs-on: windows-latest
+    name: Build & Type Check (${{ matrix.os }}, Node ${{ matrix.node-version }})
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
         node-version: [20.x, 22.x]
 
     steps:
@@ -27,20 +28,40 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Type check
-        run: npm run typecheck
-
-      - name: Build
+      - name: Type check and build
         run: npm run build
 
       - name: Audit dependencies
         run: npm audit --audit-level=high
 
   package:
-    name: Package Windows Build
-    runs-on: windows-latest
+    name: Package (${{ matrix.platform }})
+    runs-on: ${{ matrix.os }}
     needs: build
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    strategy:
+      matrix:
+        include:
+          - platform: Windows
+            os: windows-latest
+            package-cmd: npm run package:win -- --publish never
+            artifact-name: windows-build
+            artifact-path: release/*.exe
+          - platform: macOS
+            os: macos-latest
+            package-cmd: npm run package:mac -- --publish never
+            artifact-name: macos-build
+            artifact-path: |
+              release/*.dmg
+              release/*.zip
+          - platform: Linux
+            os: ubuntu-latest
+            package-cmd: npm run package:linux -- --publish never
+            artifact-name: linux-build
+            artifact-path: |
+              release/*.AppImage
+              release/*.deb
+              release/*.tar.gz
 
     steps:
       - name: Checkout code
@@ -55,15 +76,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build application
-        run: npm run build
-
-      - name: Package for Windows
-        run: npm run package -- --publish never
+      - name: Package for ${{ matrix.platform }}
+        run: ${{ matrix.package-cmd }}
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: windows-build
-          path: release/*.exe
+          name: ${{ matrix.artifact-name }}
+          path: ${{ matrix.artifact-path }}
           retention-days: 30

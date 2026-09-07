@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title description">
+  <title id="title">AI Workspace system architecture</title>
+  <desc id="description">Renderer, preload, Electron main process, isolated provider views, and local storage boundaries.</desc>
+  <defs>
+    <linearGradient id="header" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5146c8"/>
+      <stop offset="1" stop-color="#347f66"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0 0 9 3 0 6Z" fill="#7c8496"/>
+    </marker>
+  </defs>
+  <rect width="1280" height="720" rx="28" fill="#f5f7fb"/>
+  <rect x="32" y="28" width="1216" height="70" rx="18" fill="url(#header)"/>
+  <text x="64" y="71" fill="#fff" font-family="Inter,Segoe UI,sans-serif" font-size="26" font-weight="750">AI Workspace - local-first desktop architecture</text>
+
+  <g font-family="Inter,Segoe UI,sans-serif">
+    <rect x="54" y="138" width="310" height="212" rx="18" fill="#fff" stroke="#dce1ea" stroke-width="2"/>
+    <text x="78" y="174" fill="#4338b8" font-size="13" font-weight="800">RENDERER PROCESS</text>
+    <text x="78" y="204" fill="#222b3c" font-size="20" font-weight="700">React interface</text>
+    <text x="78" y="235" fill="#687284" font-size="13">App shell and account navigation</text>
+    <text x="78" y="260" fill="#687284" font-size="13">Broadcast and prompt templates</text>
+    <text x="78" y="285" fill="#687284" font-size="13">Research Lab and Use Cases</text>
+    <text x="78" y="310" fill="#687284" font-size="13">Themes, accessibility, responsive UI</text>
+
+    <rect x="438" y="138" width="310" height="212" rx="18" fill="#fff" stroke="#dce1ea" stroke-width="2"/>
+    <text x="462" y="174" fill="#4338b8" font-size="13" font-weight="800">PRELOAD BRIDGE</text>
+    <text x="462" y="204" fill="#222b3c" font-size="20" font-weight="700">Typed IPC contract</text>
+    <text x="462" y="235" fill="#687284" font-size="13">contextBridge only</text>
+    <text x="462" y="260" fill="#687284" font-size="13">No Node.js in the renderer</text>
+    <text x="462" y="285" fill="#687284" font-size="13">Validated commands and events</text>
+    <text x="462" y="310" fill="#687284" font-size="13">DesktopApi shared TypeScript types</text>
+
+    <rect x="822" y="138" width="404" height="212" rx="18" fill="#fff" stroke="#dce1ea" stroke-width="2"/>
+    <text x="846" y="174" fill="#347f66" font-size="13" font-weight="800">ELECTRON MAIN PROCESS</text>
+    <text x="846" y="204" fill="#222b3c" font-size="20" font-weight="700">Trusted orchestration layer</text>
+    <text x="846" y="235" fill="#687284" font-size="13">Window, lifecycle, and close barriers</text>
+    <text x="846" y="260" fill="#687284" font-size="13">Account/session and warm-view manager</text>
+    <text x="846" y="285" fill="#687284" font-size="13">Broadcast, schedules, and GEO runner</text>
+    <text x="846" y="310" fill="#687284" font-size="13">Validation, local stores, navigation guards</text>
+
+    <path d="M364 244h62" stroke="#7c8496" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M748 244h62" stroke="#7c8496" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="376" y="230" fill="#7c8496" font-size="11">IPC</text>
+    <text x="760" y="230" fill="#7c8496" font-size="11">IPC</text>
+
+    <rect x="54" y="416" width="694" height="244" rx="18" fill="#151923"/>
+    <text x="78" y="453" fill="#9e96f3" font-size="13" font-weight="800">ISOLATED PROVIDER SURFACES</text>
+    <text x="78" y="482" fill="#f2f4f8" font-size="20" font-weight="700">WebContentsView per connected account</text>
+
+    <g transform="translate(78 512)">
+      <rect width="142" height="98" rx="13" fill="#232936" stroke="#41495b"/>
+      <circle cx="28" cy="29" r="10" fill="#7d73e7"/>
+      <text x="46" y="34" fill="#f2f4f8" font-size="13" font-weight="700">ChatGPT</text>
+      <text x="18" y="66" fill="#aeb5c3" font-size="11">persist partition</text>
+      <text x="18" y="83" fill="#788192" font-size="10">cookies + storage</text>
+    </g>
+    <g transform="translate(236 512)">
+      <rect width="142" height="98" rx="13" fill="#232936" stroke="#41495b"/>
+      <circle cx="28" cy="29" r="10" fill="#d18b62"/>
+      <text x="46" y="34" fill="#f2f4f8" font-size="13" font-weight="700">Claude</text>
+      <text x="18" y="66" fill="#aeb5c3" font-size="11">persist partition</text>
+      <text x="18" y="83" fill="#788192" font-size="10">cookies + storage</text>
+    </g>
+    <g transform="translate(394 512)">
+      <rect width="142" height="98" rx="13" fill="#232936" stroke="#41495b"/>
+      <circle cx="28" cy="29" r="10" fill="#59bda0"/>
+      <text x="46" y="34" fill="#f2f4f8" font-size="13" font-weight="700">Perplexity</text>
+      <text x="18" y="66" fill="#aeb5c3" font-size="11">persist partition</text>
+      <text x="18" y="83" fill="#788192" font-size="10">cookies + storage</text>
+    </g>
+    <g transform="translate(552 512)">
+      <rect width="142" height="98" rx="13" fill="#232936" stroke="#41495b"/>
+      <circle cx="28" cy="29" r="10" fill="#668fea"/>
+      <text x="46" y="34" fill="#f2f4f8" font-size="13" font-weight="700">Others</text>
+      <text x="18" y="66" fill="#aeb5c3" font-size="11">persist partition</text>
+      <text x="18" y="83" fill="#788192" font-size="10">cookies + storage</text>
+    </g>
+
+    <rect x="822" y="416" width="404" height="244" rx="18" fill="#fff" stroke="#dce1ea" stroke-width="2"/>
+    <text x="846" y="453" fill="#347f66" font-size="13" font-weight="800">LOCAL USER DATA</text>
+    <text x="846" y="482" fill="#222b3c" font-size="20" font-weight="700">Atomic JSON stores</text>
+    <text x="846" y="518" fill="#687284" font-size="13">accounts + preferences + usage</text>
+    <text x="846" y="544" fill="#687284" font-size="13">templates + prompt history + schedules</text>
+    <text x="846" y="570" fill="#687284" font-size="13">research projects + GEO studies</text>
+    <rect x="846" y="594" width="348" height="42" rx="10" fill="#edf7f2"/>
+    <text x="862" y="619" fill="#397256" font-size="12" font-weight="650">No AI Workspace cloud or telemetry backend</text>
+
+    <path d="M1024 350v54" stroke="#7c8496" stroke-width="2" marker-end="url(#arrow)"/>
+    <path d="M822 538h-62" stroke="#7c8496" stroke-width="2" marker-end="url(#arrow)"/>
+  </g>
+</svg>
