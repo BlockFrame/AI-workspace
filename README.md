@@ -10,10 +10,11 @@
 [![React](https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux-343a46)](#platform-support)
+[![Beta](https://img.shields.io/badge/beta-v1.1.0--beta.1-6557de)](https://github.com/BlockFrame/AI-workspace/releases/tag/v1.1.0-beta.1)
 
 **A local-first desktop workspace for using multiple AI subscriptions as one repeatable research system.**
 
-[Download](https://github.com/BlockFrame/AI-workspace/releases/latest) · [Get started](#quick-start) · [Features](#what-you-can-do) · [Architecture](./docs/architecture.md) · [Workflows](./docs/workflows.md) · [Security](./SECURITY.md)
+[Stable download](https://github.com/BlockFrame/AI-workspace/releases/latest) · [Beta download](https://github.com/BlockFrame/AI-workspace/releases/tag/v1.1.0-beta.1) · [Get started](#quick-start) · [Features](#what-you-can-do) · [Architecture](./docs/architecture.md) · [Workflows](./docs/workflows.md) · [Security](./SECURITY.md)
 
 </div>
 
@@ -178,6 +179,11 @@ zoom remains a separate per-account setting.
 | Windows x64 | NSIS `.exe` | Yes |
 | macOS x64 / Apple Silicon | `.dmg`, `.zip` | Yes |
 | Linux x64 | `.AppImage`, `.deb`, `.tar.gz` | Yes |
+
+The current [`v1.1.0-beta.1`](https://github.com/BlockFrame/AI-workspace/releases/tag/v1.1.0-beta.1)
+prerelease was built successfully on all three native GitHub runners. Its Windows installer has
+also passed checksum, isolated installation, launch, and removal smoke tests. macOS and Linux
+packages are published and await launch testing on their respective operating systems.
 
 The `1.1.0-beta.1` packages are intentionally published unsigned for beta testing. Windows
 SmartScreen and macOS Gatekeeper can therefore display an unknown-publisher warning. The release

@@ -18,6 +18,24 @@ matching operating system rather than cross-compiling.
 Every filename includes the application version, operating system, and architecture. A release also
 contains `SHA256SUMS.txt`.
 
+### Current beta validation
+
+[`v1.1.0-beta.1`](https://github.com/BlockFrame/AI-workspace/releases/tag/v1.1.0-beta.1) is the first
+cross-platform prerelease:
+
+| Check | Status |
+| --- | --- |
+| Windows, macOS, and Linux native CI builds | Passed |
+| Release aggregation and SHA-256 manifest | Passed |
+| Windows x64 checksum, isolated install, launch, and removal | Passed |
+| macOS Intel and Apple Silicon launch | Awaiting real-device test |
+| Linux AppImage, DEB, and tar.gz launch | Awaiting real-host test |
+| In-app update from `beta.1` to `beta.2` | Planned |
+
+Starting with `beta.2`, the release workflow also starts the packaged application on each native
+runner before uploading assets. The macOS runner tests its native architecture, Linux tests the
+AppImage under Xvfb, and Windows launches the unpacked executable with an isolated profile.
+
 ## Verify a download
 
 Run the command from the folder containing both the package and `SHA256SUMS.txt`.

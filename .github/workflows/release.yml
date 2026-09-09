@@ -123,6 +123,75 @@ jobs:
       - name: Build and package application
         run: ${{ matrix.package-cmd }}
 
+      - name: Smoke test Windows application
+        if: matrix.platform == 'Windows'
+        shell: pwsh
+        run: |
+          $executable = Get-Item "release\win-unpacked\AI Workspace.exe" -ErrorAction Stop
+          $profile = Join-Path $env:RUNNER_TEMP "ai-workspace-smoke"
+          $process = Start-Process `
+            -FilePath $executable.FullName `
+            -ArgumentList "--user-data-dir=$profile" `
+            -PassThru
+          try {
+            Start-Sleep -Seconds 15
+            if ($process.HasExited) {
+              throw "The packaged Windows application exited during startup."
+            }
+          } finally {
+            if (-not $process.HasExited) {
+              Stop-Process -Id $process.Id
+              $process.WaitForExit()
+            }
+          }
+
+      - name: Smoke test macOS application
+        if: matrix.platform == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$(uname -m)" == "arm64" ]]; then
+            executable="release/mac-arm64/AI Workspace.app/Contents/MacOS/AI Workspace"
+          else
+            executable="release/mac/AI Workspace.app/Contents/MacOS/AI Workspace"
+          fi
+          test -x "$executable"
+          "$executable" --user-data-dir="$RUNNER_TEMP/ai-workspace-smoke" \
+            >"$RUNNER_TEMP/ai-workspace-smoke.log" 2>&1 &
+          app_pid=$!
+          cleanup() {
+            if kill -0 "$app_pid" 2>/dev/null; then
+              kill "$app_pid"
+              wait "$app_pid" || true
+            fi
+          }
+          trap cleanup EXIT
+          sleep 15
+          if ! kill -0 "$app_pid" 2>/dev/null; then
+            cat "$RUNNER_TEMP/ai-workspace-smoke.log"
+            exit 1
+          fi
+
+      - name: Smoke test Linux AppImage
+        if: matrix.platform == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          appimage="$(find release -maxdepth 1 -type f -name '*.AppImage' -print -quit)"
+          test -n "$appimage"
+          chmod +x "$appimage"
+          set +e
+          timeout 15s env APPIMAGE_EXTRACT_AND_RUN=1 xvfb-run --auto-servernum "$appimage" \
+            --no-sandbox \
+            --user-data-dir="$RUNNER_TEMP/ai-workspace-smoke" \
+            >"$RUNNER_TEMP/ai-workspace-smoke.log" 2>&1
+          status=$?
+          set -e
+          if [[ "$status" -ne 124 ]]; then
+            cat "$RUNNER_TEMP/ai-workspace-smoke.log"
+            exit 1
+          fi
+
       - name: Upload release assets
         uses: actions/upload-artifact@v4
         with:
