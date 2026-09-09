@@ -182,9 +182,10 @@ zoom remains a separate per-account setting.
 The `1.1.0-beta.1` packages are intentionally published unsigned for beta testing. Windows
 SmartScreen and macOS Gatekeeper can therefore display an unknown-publisher warning. The release
 workflow already supports Windows code signing and macOS Developer ID signing plus notarization
-without storing credentials in the repository; those credentials remain deferred until after the
-beta update cycle. Packaged builds can check GitHub Releases and ask before downloading or
-restarting.
+without storing credentials in the repository. Signing variables are injected only when those
+secrets exist, so unsigned beta builds remain deterministic; credentials remain deferred until
+after the beta update cycle. Packaged builds can check GitHub Releases and ask before downloading
+or restarting.
 
 ## Sign-in limitations
 

@@ -87,6 +87,10 @@ A semantic prerelease tag such as `v1.2.0-beta.1` creates a GitHub prerelease.
 - Keep a problematic release available only when users need its notes or assets; otherwise mark it
   as a prerelease and direct users to the last stable version.
 
+The first `v1.1.0-beta.1` attempt exposed an important unsigned-build edge case: standard signing
+environment variables must be omitted, not exported with empty values. The workflow therefore adds
+Windows and macOS signing variables only when the corresponding repository secrets are present.
+
 ## Current trust boundary
 
 The `1.1.0-beta.1` packages are intentionally unsigned while the first end-to-end release and update
