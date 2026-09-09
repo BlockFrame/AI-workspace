@@ -16,6 +16,7 @@ import type {
   AccountProfile,
   AccountProviderSettings,
   AppPreferences,
+  AppUpdateStatus,
   BroadcastDeliveryResult,
   BroadcastMode,
   PromptHistoryEntry,
@@ -57,6 +58,7 @@ type IconName =
 
 type SettingsPage =
   | "preferences"
+  | "updates"
   | "accounts"
   | "templates"
   | "memory"
@@ -82,6 +84,7 @@ const DEFAULT_PREFERENCES: AppPreferences = {
   appZoomPercent: 100,
   highContrast: false,
   reducedMotion: false,
+  updateChannel: "stable",
   dataProtectionByService: DEFAULT_DATA_PROTECTION_SETTINGS
 };
 
@@ -130,6 +133,7 @@ const SETTINGS_TABS: ReadonlyArray<{
   icon: IconName;
 }> = [
   { page: "preferences", label: "Preferences", icon: "settings" },
+  { page: "updates", label: "Updates", icon: "refresh" },
   { page: "accounts", label: "Accounts", icon: "sparkles" },
   { page: "templates", label: "Templates", icon: "type" },
   { page: "memory", label: "Memory", icon: "history" },
@@ -452,6 +456,8 @@ export default function App() {
   const [usageError, setUsageError] = useState<string | null>(null);
   const [preferences, setPreferences] = useState<AppPreferences>(DEFAULT_PREFERENCES);
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+  const [updateStatus, setUpdateStatus] = useState<AppUpdateStatus | null>(null);
+  const [isUpdateActionRunning, setIsUpdateActionRunning] = useState(false);
   const [accountSettings, setAccountSettings] = useState<AccountProviderSettings[]>([]);
   const [settingsAccountId, setSettingsAccountId] = useState<string>("");
   const [promptHistory, setPromptHistory] = useState<PromptHistoryEntry[]>([]);
@@ -709,6 +715,40 @@ export default function App() {
     }
   };
 
+  const runUpdateAction = async (
+    action: () => Promise<AppUpdateStatus>,
+    fallbackMessage: string
+  ) => {
+    setIsUpdateActionRunning(true);
+    setSettingsError(null);
+    setSettingsMessage(null);
+    try {
+      setUpdateStatus(await action());
+    } catch (updateError) {
+      setSettingsError(
+        updateError instanceof Error ? updateError.message : fallbackMessage
+      );
+    } finally {
+      setIsUpdateActionRunning(false);
+    }
+  };
+
+  const installUpdate = async () => {
+    setIsUpdateActionRunning(true);
+    setSettingsError(null);
+    try {
+      await window.desktop.installUpdate();
+    } catch (updateError) {
+      setSettingsError(
+        updateError instanceof Error
+          ? updateError.message
+          : "Unable to restart and install the update."
+      );
+    } finally {
+      setIsUpdateActionRunning(false);
+    }
+  };
+
   useEffect(() => {
     let disposed = false;
     void Promise.all([
@@ -717,7 +757,8 @@ export default function App() {
       window.desktop.listAccountSettings(),
       window.desktop.listPromptHistory(),
       window.desktop.listPromptTemplates(),
-      window.desktop.listSchedules()
+      window.desktop.listSchedules(),
+      window.desktop.getUpdateStatus()
     ])
       .then(
         ([
@@ -726,7 +767,8 @@ export default function App() {
           storedAccountSettings,
           storedHistory,
           storedTemplates,
-          storedSchedules
+          storedSchedules,
+          storedUpdateStatus
         ]) => {
         if (disposed) {
           return;
@@ -738,6 +780,7 @@ export default function App() {
         setPromptHistory(storedHistory);
         setPromptTemplates(storedTemplates);
         setSchedules(storedSchedules);
+        setUpdateStatus(storedUpdateStatus);
         const firstAccount = sortAccounts(storedAccounts)[0];
         if (firstAccount) {
           setSettingsAccountId(firstAccount.id);
@@ -793,6 +836,7 @@ export default function App() {
   );
   useEffect(() => window.desktop.onSchedulesChanged(setSchedules), []);
   useEffect(() => window.desktop.onPreferencesChanged(setPreferences), []);
+  useEffect(() => window.desktop.onUpdateStatus(setUpdateStatus), []);
   useEffect(
     () =>
       window.desktop.onProviderShortcut((serviceId) => {
@@ -1328,6 +1372,10 @@ export default function App() {
       kicker: "Preferences",
       description: "Customize appearance and accessibility."
     },
+    updates: {
+      kicker: "Desktop updates",
+      description: "Check, download, and install signed releases with your consent."
+    },
     accounts: {
       kicker: "Per-account controls",
       description: "Set provider defaults, reusable context, and page zoom."
@@ -1653,6 +1701,33 @@ export default function App() {
               </span>
             </div>
             <button onClick={dismissAuthGuidance} type="button">Got it</button>
+          </aside>
+        ) : null}
+
+        {updateStatus?.state === "available" || updateStatus?.state === "downloaded" ? (
+          <aside className="app-update-banner" aria-label="Application update">
+            <div>
+              <strong>
+                {updateStatus.state === "downloaded"
+                  ? `AI Workspace ${updateStatus.availableVersion ?? ""} is ready`
+                  : `AI Workspace ${updateStatus.availableVersion ?? ""} is available`}
+              </strong>
+              <span>
+                {updateStatus.state === "downloaded"
+                  ? "Restart when you are ready to complete the installation."
+                  : "Review and download the update from Settings."}
+              </span>
+            </div>
+            <button
+              onClick={() =>
+                updateStatus.state === "downloaded"
+                  ? void installUpdate()
+                  : openSettings("updates")
+              }
+              type="button"
+            >
+              {updateStatus.state === "downloaded" ? "Restart and update" : "Review update"}
+            </button>
           </aside>
         ) : null}
 
@@ -2030,6 +2105,137 @@ export default function App() {
                 </div>
               </section>
                 </>
+              ) : settingsPage === "updates" ? (
+                <section className="update-panel" aria-labelledby="updates-heading">
+                  <div className="settings-section-heading">
+                    <span className="settings-section-icon">
+                      <Icon name="refresh" size={18} />
+                    </span>
+                    <div>
+                      <h3 id="updates-heading">Application updates</h3>
+                      <p>Updates come only from this project's official GitHub Releases.</p>
+                    </div>
+                  </div>
+
+                  <div className="update-status-card" data-state={updateStatus?.state ?? "idle"}>
+                    <div>
+                      <span className="update-status-label">
+                        {updateStatus?.state === "checking"
+                          ? "Checking"
+                          : updateStatus?.state === "available"
+                            ? "Update available"
+                            : updateStatus?.state === "downloading"
+                              ? "Downloading"
+                              : updateStatus?.state === "downloaded"
+                                ? "Ready to install"
+                                : updateStatus?.state === "error"
+                                  ? "Update error"
+                                  : updateStatus?.state === "disabled"
+                                    ? "Manual updates"
+                                    : "Up to date"}
+                      </span>
+                      <strong>AI Workspace {updateStatus?.currentVersion ?? "..."}</strong>
+                      <small>
+                        {updateStatus?.message ?? "Loading update information..."}
+                      </small>
+                    </div>
+                    {updateStatus?.availableVersion ? (
+                      <span className="update-version">
+                        v{updateStatus.availableVersion}
+                      </span>
+                    ) : null}
+                  </div>
+
+                  {updateStatus?.state === "downloading" ? (
+                    <div
+                      aria-label={`Update download ${updateStatus.downloadPercent ?? 0}%`}
+                      className="update-progress"
+                      role="progressbar"
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={updateStatus.downloadPercent ?? 0}
+                    >
+                      <span style={{ width: `${updateStatus.downloadPercent ?? 0}%` }} />
+                    </div>
+                  ) : null}
+
+                  <div className="update-actions">
+                    {updateStatus?.state === "available" ? (
+                      <button
+                        className="inline-primary-button"
+                        disabled={isUpdateActionRunning}
+                        onClick={() =>
+                          void runUpdateAction(
+                            window.desktop.downloadUpdate,
+                            "Unable to download the update."
+                          )
+                        }
+                        type="button"
+                      >
+                        Download update
+                      </button>
+                    ) : updateStatus?.state === "downloaded" ? (
+                      <button
+                        className="inline-primary-button"
+                        disabled={isUpdateActionRunning}
+                        onClick={() => void installUpdate()}
+                        type="button"
+                      >
+                        Restart and update
+                      </button>
+                    ) : updateStatus?.state !== "disabled" ? (
+                      <button
+                        className="inline-primary-button"
+                        disabled={
+                          isUpdateActionRunning ||
+                          updateStatus?.state === "checking" ||
+                          updateStatus?.state === "downloading"
+                        }
+                        onClick={() =>
+                          void runUpdateAction(
+                            window.desktop.checkForUpdates,
+                            "Unable to check for updates."
+                          )
+                        }
+                        type="button"
+                      >
+                        {updateStatus?.state === "checking" ? "Checking..." : "Check for updates"}
+                      </button>
+                    ) : null}
+                  </div>
+
+                  <div className="preference-row update-channel-row">
+                    <div>
+                      <span className="preference-label">Release channel</span>
+                      <small>
+                        Stable receives production releases. Beta can also receive prereleases.
+                      </small>
+                    </div>
+                    <div className="segmented-control" aria-label="Release channel">
+                      {(["stable", "beta"] as const).map((channel) => (
+                        <button
+                          aria-pressed={preferences.updateChannel === channel}
+                          className={preferences.updateChannel === channel ? "is-active" : ""}
+                          key={channel}
+                          onClick={() =>
+                            setPreferences((current) => ({
+                              ...current,
+                              updateChannel: channel
+                            }))
+                          }
+                          type="button"
+                        >
+                          {channel === "stable" ? "Stable" : "Beta"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <p className="update-trust-note">
+                    Downloads are never installed silently. AI Workspace asks before downloading
+                    and again before restarting to install.
+                  </p>
+                </section>
               ) : settingsPage === "accounts" ? (
                 <section className="account-settings-panel" aria-labelledby="account-settings-heading">
                   <div className="settings-section-heading">

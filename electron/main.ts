@@ -11,6 +11,7 @@ import {
 import { createHash, randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { autoUpdater } from "electron-updater";
 import { scanSensitiveData } from "../src/shared/sensitive-data";
 import { SERVICES, SERVICE_BY_ID, isServiceId } from "../src/shared/services";
 import {
@@ -35,6 +36,7 @@ import type {
   AccountProfile,
   AccountProviderSettings,
   AppPreferences,
+  AppUpdateStatus,
   BroadcastDeliveryResult,
   BroadcastMode,
   BroadcastRequest,
@@ -77,6 +79,7 @@ const DEFAULT_PREFERENCES: AppPreferences = {
   appZoomPercent: 100,
   highContrast: false,
   reducedMotion: false,
+  updateChannel: "stable",
   dataProtectionByService: { ...DEFAULT_DATA_PROTECTION_SETTINGS }
 };
 let dataProtectionSettings: DataProtectionSettings = {
@@ -1034,9 +1037,18 @@ let isFinalizingQuit = false;
 let isQuitRequested = false;
 let isRendererCloseConfirmed = false;
 let isRendererCloseRequestPending = false;
+let isInstallingUpdate = false;
+let pendingUpdateInstall:
+  | { resolve: () => void; reject: (error: Error) => void }
+  | null = null;
 let accountSelectionQueue: Promise<void> = Promise.resolve();
 const runningGeoStudies = new Map<string, Promise<void>>();
 const cancelledGeoStudies = new Set<string>();
+let updateStatus: AppUpdateStatus = {
+  state: "idle",
+  currentVersion: app.getVersion(),
+  message: "Ready to check for updates."
+};
 
 function requestRendererCloseConfirmation(): void {
   if (
@@ -1048,6 +1060,144 @@ function requestRendererCloseConfirmation(): void {
   }
   isRendererCloseRequestPending = true;
   mainWindow.webContents.send("app:before-close");
+}
+
+function publishUpdateStatus(nextStatus: AppUpdateStatus): AppUpdateStatus {
+  updateStatus = nextStatus;
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send("updates:status", updateStatus);
+  }
+  return updateStatus;
+}
+
+function updatesAreSupported(): boolean {
+  return app.isPackaged && (process.platform !== "linux" || Boolean(process.env.APPIMAGE));
+}
+
+function configureAutoUpdater(): void {
+  autoUpdater.autoDownload = false;
+  autoUpdater.autoInstallOnAppQuit = false;
+  autoUpdater.allowPrerelease = preferencesStore.get().updateChannel === "beta";
+
+  if (!updatesAreSupported()) {
+    publishUpdateStatus({
+      state: "disabled",
+      currentVersion: app.getVersion(),
+      message: app.isPackaged
+        ? "Automatic updates are available for the Linux AppImage. Install other Linux packages from GitHub Releases."
+        : "Update checks are available only in packaged builds."
+    });
+    return;
+  }
+
+  autoUpdater.on("checking-for-update", () => {
+    publishUpdateStatus({
+      state: "checking",
+      currentVersion: app.getVersion(),
+      message: "Checking GitHub Releases for updates..."
+    });
+  });
+  autoUpdater.on("update-available", (info) => {
+    publishUpdateStatus({
+      state: "available",
+      currentVersion: app.getVersion(),
+      availableVersion: info.version,
+      message: `AI Workspace ${info.version} is available.`
+    });
+  });
+  autoUpdater.on("update-not-available", () => {
+    publishUpdateStatus({
+      state: "not-available",
+      currentVersion: app.getVersion(),
+      message: "You are using the latest available version."
+    });
+  });
+  autoUpdater.on("download-progress", (progress) => {
+    publishUpdateStatus({
+      state: "downloading",
+      currentVersion: app.getVersion(),
+      availableVersion: updateStatus.availableVersion,
+      downloadPercent: Math.max(0, Math.min(100, Math.round(progress.percent))),
+      message: `Downloading update: ${Math.round(progress.percent)}%.`
+    });
+  });
+  autoUpdater.on("update-downloaded", (info) => {
+    publishUpdateStatus({
+      state: "downloaded",
+      currentVersion: app.getVersion(),
+      availableVersion: info.version,
+      downloadPercent: 100,
+      message: `AI Workspace ${info.version} is ready to install.`
+    });
+  });
+  autoUpdater.on("error", (error) => {
+    console.error("Unable to update AI Workspace.", error);
+    publishUpdateStatus({
+      state: "error",
+      currentVersion: app.getVersion(),
+      availableVersion: updateStatus.availableVersion,
+      message: "Unable to check for or download the update. Try again later."
+    });
+  });
+}
+
+async function checkForApplicationUpdates(): Promise<AppUpdateStatus> {
+  if (!updatesAreSupported()) {
+    return updateStatus;
+  }
+  if (updateStatus.state === "checking" || updateStatus.state === "downloading") {
+    return updateStatus;
+  }
+  await autoUpdater.checkForUpdates();
+  return updateStatus;
+}
+
+async function persistApplicationState(reason: string): Promise<void> {
+  await stopRunningGeoStudies(reason);
+  await flushActiveUsage();
+  await Promise.all([
+    usageStore.waitForPendingSaves(),
+    preferencesStore.waitForPendingSaves(),
+    accountSettingsStore.waitForPendingSaves(),
+    promptHistoryStore.waitForPendingSaves(),
+    promptTemplateStore.waitForPendingSaves(),
+    scheduleStore.waitForPendingSaves(),
+    researchStore.waitForPendingSaves(),
+    geoStudyStore.waitForPendingSaves()
+  ]);
+}
+
+async function installDownloadedUpdate(): Promise<void> {
+  const request = pendingUpdateInstall;
+  pendingUpdateInstall = null;
+  if (!request) {
+    return;
+  }
+
+  try {
+    await persistApplicationState("AI Workspace is restarting to install an update.");
+    isInstallingUpdate = true;
+    autoUpdater.quitAndInstall(false, true);
+    request.resolve();
+  } catch (error) {
+    isInstallingUpdate = false;
+    isRendererCloseConfirmed = false;
+    request.reject(
+      error instanceof Error ? error : new Error("Unable to start the update installer.")
+    );
+    return;
+  }
+
+  const installFallbackTimer = setTimeout(() => {
+    isInstallingUpdate = false;
+    isRendererCloseConfirmed = false;
+    publishUpdateStatus({
+      ...updateStatus,
+      state: "error",
+      message: "The installer did not start. Restart AI Workspace and try again."
+    });
+  }, 10_000);
+  installFallbackTimer.unref();
 }
 
 function isNodeError(error: unknown): error is NodeJS.ErrnoException {
@@ -1190,6 +1340,8 @@ function normalizePreferences(value: unknown): AppPreferences | null {
   const protection = normalizeDataProtectionSettings(candidate.dataProtectionByService);
   const appZoomPercent =
     candidate.appZoomPercent === undefined ? 100 : candidate.appZoomPercent;
+  const updateChannel =
+    candidate.updateChannel === undefined ? "stable" : candidate.updateChannel;
   if (
     (candidate.theme !== "light" &&
       candidate.theme !== "dark" &&
@@ -1201,6 +1353,7 @@ function normalizePreferences(value: unknown): AppPreferences | null {
     !APP_ZOOM_LEVELS.includes(appZoomPercent as (typeof APP_ZOOM_LEVELS)[number]) ||
     typeof candidate.highContrast !== "boolean" ||
     typeof candidate.reducedMotion !== "boolean" ||
+    (updateChannel !== "stable" && updateChannel !== "beta") ||
     !protection
   ) {
     return null;
@@ -1211,6 +1364,7 @@ function normalizePreferences(value: unknown): AppPreferences | null {
     appZoomPercent,
     highContrast: candidate.highContrast,
     reducedMotion: candidate.reducedMotion,
+    updateChannel,
     dataProtectionByService: protection
   };
 }
@@ -3394,6 +3548,10 @@ function registerIpcHandlers(): void {
     }
     isRendererCloseConfirmed = true;
     isRendererCloseRequestPending = false;
+    if (pendingUpdateInstall) {
+      void installDownloadedUpdate();
+      return;
+    }
     if (isQuitRequested) {
       app.quit();
     } else {
@@ -3403,6 +3561,10 @@ function registerIpcHandlers(): void {
   ipcMain.on("app:close-cancelled", () => {
     isQuitRequested = false;
     isRendererCloseRequestPending = false;
+    isRendererCloseConfirmed = false;
+    const request = pendingUpdateInstall;
+    pendingUpdateInstall = null;
+    request?.reject(new Error("Update installation was cancelled."));
   });
   ipcMain.handle("accounts:list", () => accountStore.list());
 
@@ -3656,12 +3818,44 @@ function registerIpcHandlers(): void {
       throw new Error("Invalid preference settings.");
     }
     dataProtectionSettings = { ...preferences.dataProtectionByService };
+    const previousUpdateChannel = preferencesStore.get().updateChannel;
     await preferencesStore.set(preferences);
+    autoUpdater.allowPrerelease = preferences.updateChannel === "beta";
+    if (previousUpdateChannel !== preferences.updateChannel && updatesAreSupported()) {
+      publishUpdateStatus({
+        state: "idle",
+        currentVersion: app.getVersion(),
+        message: `Update channel changed to ${preferences.updateChannel}. Check again to refresh results.`
+      });
+    }
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.setZoomFactor(preferences.appZoomPercent / 100);
     }
     await Promise.all([...managedViews.values()].map(applyDataProtectionToView));
     return preferencesStore.get();
+  });
+
+  ipcMain.handle("updates:get-status", () => updateStatus);
+  ipcMain.handle("updates:check", () => checkForApplicationUpdates());
+  ipcMain.handle("updates:download", async () => {
+    if (updateStatus.state !== "available") {
+      throw new Error("No update is ready to download.");
+    }
+    await autoUpdater.downloadUpdate();
+    return updateStatus;
+  });
+  ipcMain.handle("updates:install", async () => {
+    if (updateStatus.state !== "downloaded") {
+      throw new Error("No downloaded update is ready to install.");
+    }
+    if (pendingUpdateInstall) {
+      throw new Error("Update installation is already waiting for confirmation.");
+    }
+    isRendererCloseConfirmed = false;
+    return new Promise<void>((resolve, reject) => {
+      pendingUpdateInstall = { resolve, reject };
+      requestRendererCloseConfirmation();
+    });
   });
 
   ipcMain.handle("data-protection:set", async (_event, value: unknown) => {
@@ -4151,8 +4345,15 @@ if (!hasSingleInstanceLock) {
     await researchStore.load();
     await geoStudyStore.load();
     dataProtectionSettings = preferencesStore.get().dataProtectionByService;
+    configureAutoUpdater();
     registerIpcHandlers();
     await createMainWindow();
+    const updateCheckTimer = setTimeout(() => {
+      void checkForApplicationUpdates().catch((error: unknown) => {
+        console.error("Unable to perform the startup update check.", error);
+      });
+    }, 15_000);
+    updateCheckTimer.unref();
     scheduleTimer = setInterval(() => {
       void runDueSchedules().catch((error: unknown) => {
         console.error("Unable to execute scheduled prompts.", error);
@@ -4176,6 +4377,9 @@ if (!hasSingleInstanceLock) {
   });
 
   app.on("before-quit", (event) => {
+    if (isInstallingUpdate) {
+      return;
+    }
     if (!isRendererCloseConfirmed) {
       event.preventDefault();
       isQuitRequested = true;
@@ -4191,20 +4395,7 @@ if (!hasSingleInstanceLock) {
       clearInterval(scheduleTimer);
       scheduleTimer = null;
     }
-    void stopRunningGeoStudies("AI Workspace is closing.")
-      .then(() => flushActiveUsage())
-      .then(() =>
-        Promise.all([
-          usageStore.waitForPendingSaves(),
-          preferencesStore.waitForPendingSaves(),
-          accountSettingsStore.waitForPendingSaves(),
-          promptHistoryStore.waitForPendingSaves(),
-          promptTemplateStore.waitForPendingSaves(),
-          scheduleStore.waitForPendingSaves(),
-          researchStore.waitForPendingSaves(),
-          geoStudyStore.waitForPendingSaves()
-        ])
-      )
+    void persistApplicationState("AI Workspace is closing.")
       .catch((error: unknown) => {
         console.error("Unable to persist final usage.", error);
       })

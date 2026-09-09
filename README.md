@@ -13,7 +13,7 @@
 
 **A local-first desktop workspace for using multiple AI subscriptions as one repeatable research system.**
 
-[Get started](#quick-start) · [Features](#what-you-can-do) · [Architecture](./docs/architecture.md) · [Workflows](./docs/workflows.md) · [Security](./SECURITY.md)
+[Download](https://github.com/BlockFrame/AI-workspace/releases/latest) · [Get started](#quick-start) · [Features](#what-you-can-do) · [Architecture](./docs/architecture.md) · [Workflows](./docs/workflows.md) · [Security](./SECURITY.md)
 
 </div>
 
@@ -126,6 +126,14 @@ npm run package:linux
 
 Generated packages are written to `release/`.
 
+### Download a release
+
+Published installers are available from
+[GitHub Releases](https://github.com/BlockFrame/AI-workspace/releases). Each tagged release
+contains Windows, macOS, and Linux packages plus a `SHA256SUMS.txt` integrity manifest.
+See the [release guide](./docs/releases.md) for package selection, verification, and maintainer
+steps. Production maintainers can follow the [code-signing guide](./docs/code-signing.md).
+
 ## Core workflows
 
 ### Compare and improve answers
@@ -171,8 +179,10 @@ zoom remains a separate per-account setting.
 | macOS x64 / Apple Silicon | `.dmg`, `.zip` | Yes |
 | Linux x64 | `.AppImage`, `.deb`, `.tar.gz` | Yes |
 
-Packages are currently unsigned. macOS notarization and production signing require project
-credentials and are intentionally not configured in the repository.
+Packages remain unsigned until maintainers configure the documented GitHub Secrets. The release
+workflow supports Windows code signing and macOS Developer ID signing plus notarization without
+storing credentials in the repository. Packaged builds can check GitHub Releases and ask before
+downloading or restarting.
 
 ## Sign-in limitations
 

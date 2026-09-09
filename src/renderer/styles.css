@@ -966,6 +966,42 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .preference-row > div:first-child { display: flex; flex-direction: column; }
 .preference-label { display: flex; align-items: center; gap: 7px; color: #41495a; font-size: 11px; font-weight: 650; }
 .preference-row small { margin-top: 3px; color: #8d95a3; font-size: 9px; }
+.update-status-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 16px;
+  border: 1px solid #dfe3e9;
+  border-radius: 12px;
+  background: #fafbfc;
+}
+.update-status-card > div { display: flex; min-width: 0; flex-direction: column; gap: 4px; }
+.update-status-card strong { color: #293142; font-size: 14px; }
+.update-status-card small { color: #7d8594; font-size: 9px; line-height: 1.5; }
+.update-status-label {
+  color: #5b52cc;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.update-status-card[data-state="error"] .update-status-label { color: #b33a4b; }
+.update-status-card[data-state="downloaded"] { border-color: #a9d8bd; background: #f3fbf6; }
+.update-version {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border-radius: 999px;
+  color: #4b42bb;
+  background: #eeecfb;
+  font-size: 9px;
+  font-weight: 750;
+}
+.update-progress { height: 6px; margin-top: 12px; overflow: hidden; border-radius: 999px; background: #e8eaf0; }
+.update-progress span { display: block; height: 100%; border-radius: inherit; background: #5b52cc; transition: width 180ms ease; }
+.update-actions { display: flex; align-items: center; gap: 9px; }
+.update-channel-row { margin-top: 16px; }
+.update-trust-note { margin: 13px 0 0; color: #858d9c; font-size: 9px; line-height: 1.55; }
 .segmented-control { display: flex; padding: 3px; border-radius: 9px; background: #f0f2f6; }
 .segmented-control button {
   min-width: 43px;
@@ -1196,6 +1232,31 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   cursor: pointer;
 }
 .inline-primary-button:disabled { opacity: .5; cursor: default; }
+.app-update-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 10px 18px;
+  border-bottom: 1px solid #d9d5f3;
+  color: #34304f;
+  background: #f3f1ff;
+}
+.app-update-banner > div { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
+.app-update-banner strong { font-size: 10px; }
+.app-update-banner span { color: #706b88; font-size: 9px; }
+.app-update-banner button {
+  flex: 0 0 auto;
+  min-height: 30px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 7px;
+  color: #fff;
+  background: #5147c8;
+  font-size: 9px;
+  font-weight: 700;
+  cursor: pointer;
+}
 .empty-settings { margin: 20px 0; color: #858d9c; font-size: 10px; }
 .memory-list,
 .schedule-list { display: grid; gap: 8px; max-height: 440px; margin-top: 13px; overflow-y: auto; }
@@ -2580,6 +2641,25 @@ html[data-theme="dark"] .preference-row { border-color: #2e3138; }
 html[data-theme="dark"] .segmented-control { background: #1b1d22; }
 html[data-theme="dark"] .segmented-control button { color: #a3a9b4; }
 html[data-theme="dark"] .segmented-control button.is-active { color: #d7d2ff; background: #393451; }
+html[data-theme="dark"] .update-status-card {
+  border-color: #363941;
+  background: #191b20;
+}
+html[data-theme="dark"] .update-status-card strong { color: #f0f2f6; }
+html[data-theme="dark"] .update-status-card small,
+html[data-theme="dark"] .update-trust-note { color: #9da4b0; }
+html[data-theme="dark"] .update-status-card[data-state="downloaded"] {
+  border-color: #315e43;
+  background: #14251b;
+}
+html[data-theme="dark"] .update-version { color: #d7d2ff; background: #393451; }
+html[data-theme="dark"] .update-progress { background: #292c33; }
+html[data-theme="dark"] .app-update-banner {
+  border-color: #393451;
+  color: #eeeaff;
+  background: #24213b;
+}
+html[data-theme="dark"] .app-update-banner span { color: #b8b2da; }
 html[data-theme="dark"] .switch { background: #484c55; }
 html[data-theme="dark"] .switch[aria-checked="true"] { background: #756be0; }
 html[data-theme="dark"] .protection-master-row {

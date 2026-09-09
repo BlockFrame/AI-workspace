@@ -81,6 +81,7 @@ export type BroadcastDeliveryStatus = "submitted" | "unsupported" | "failed";
 
 export type ThemePreference = "light" | "dark" | "system";
 export type TextSizePreference = "standard" | "large" | "extra-large";
+export type UpdateChannel = "stable" | "beta";
 
 export interface AppPreferences {
   theme: ThemePreference;
@@ -88,7 +89,26 @@ export interface AppPreferences {
   appZoomPercent: number;
   highContrast: boolean;
   reducedMotion: boolean;
+  updateChannel: UpdateChannel;
   dataProtectionByService: DataProtectionSettings;
+}
+
+export type AppUpdateState =
+  | "disabled"
+  | "idle"
+  | "checking"
+  | "available"
+  | "not-available"
+  | "downloading"
+  | "downloaded"
+  | "error";
+
+export interface AppUpdateStatus {
+  state: AppUpdateState;
+  currentVersion: string;
+  availableVersion?: string;
+  downloadPercent?: number;
+  message: string;
 }
 
 export interface AccountProviderSettings {
@@ -206,6 +226,10 @@ export interface DesktopApi {
   resetUsage(periodDays: UsagePeriodDays): Promise<ResetUsageResult>;
   getPreferences(): Promise<AppPreferences>;
   setPreferences(preferences: AppPreferences): Promise<AppPreferences>;
+  getUpdateStatus(): Promise<AppUpdateStatus>;
+  checkForUpdates(): Promise<AppUpdateStatus>;
+  downloadUpdate(): Promise<AppUpdateStatus>;
+  installUpdate(): Promise<void>;
   setDataProtectionSettings(settings: DataProtectionSettings): Promise<void>;
   listAccountSettings(): Promise<AccountProviderSettings[]>;
   updateAccountSettings(
@@ -262,4 +286,5 @@ export interface DesktopApi {
   onSchedulesChanged(listener: (schedules: ScheduledPrompt[]) => void): () => void;
   onProviderShortcut(listener: (serviceId: ServiceId) => void): () => void;
   onPreferencesChanged(listener: (preferences: AppPreferences) => void): () => void;
+  onUpdateStatus(listener: (status: AppUpdateStatus) => void): () => void;
 }

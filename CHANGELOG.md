@@ -22,6 +22,10 @@ Notable changes to AI Workspace are documented here. The format follows
   guidance when Google rejects an embedded flow.
 - Collapsible, responsive sidebar and compact connected-account navigation.
 - Updated architecture, workflow, privacy, security, and contribution documentation.
+- Deterministic GitHub Release publishing with version validation, native platform artifacts, and
+  SHA-256 checksums.
+- Consent-based desktop update checks, downloads, restart installation, and stable/beta channels.
+- Secret-driven Windows signing and macOS Developer ID signing/notarization release paths.
 
 ### Changed
 

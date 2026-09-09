@@ -3,6 +3,7 @@ import type {
   AccountProfile,
   AccountProviderSettings,
   AppPreferences,
+  AppUpdateStatus,
   BroadcastRequest,
   BroadcastResult,
   CreateScheduleRequest,
@@ -62,6 +63,14 @@ const desktopApi: DesktopApi = {
     ipcRenderer.invoke("preferences:get") as Promise<AppPreferences>,
   setPreferences: (preferences: AppPreferences) =>
     ipcRenderer.invoke("preferences:set", preferences) as Promise<AppPreferences>,
+  getUpdateStatus: () =>
+    ipcRenderer.invoke("updates:get-status") as Promise<AppUpdateStatus>,
+  checkForUpdates: () =>
+    ipcRenderer.invoke("updates:check") as Promise<AppUpdateStatus>,
+  downloadUpdate: () =>
+    ipcRenderer.invoke("updates:download") as Promise<AppUpdateStatus>,
+  installUpdate: () =>
+    ipcRenderer.invoke("updates:install") as Promise<void>,
   setDataProtectionSettings: (settings: DataProtectionSettings) =>
     ipcRenderer.invoke("data-protection:set", settings) as Promise<void>,
   listAccountSettings: () =>
@@ -167,6 +176,12 @@ const desktopApi: DesktopApi = {
       listener(preferences);
     ipcRenderer.on("preferences:changed", handler);
     return () => ipcRenderer.removeListener("preferences:changed", handler);
+  },
+  onUpdateStatus: (listener: (status: AppUpdateStatus) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, status: AppUpdateStatus) =>
+      listener(status);
+    ipcRenderer.on("updates:status", handler);
+    return () => ipcRenderer.removeListener("updates:status", handler);
   }
 };
 

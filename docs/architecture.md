@@ -256,14 +256,28 @@ external-browser OAuth return would require an official third-party desktop flow
 ```mermaid
 flowchart LR
     C["Push / pull request"] --> CI["Build and typecheck<br/>Windows + macOS + Linux<br/>Node 20 + 22"]
-    T["Version tag v*"] --> R["Release workflow"]
+    T["SemVer tag matching package.json"] --> V["Validate version"]
+    V --> R["Parallel native builds"]
     R --> W["Windows NSIS"]
     R --> M["macOS DMG + ZIP"]
     R --> L["Linux AppImage + DEB + tar.gz"]
+    W --> P["Single GitHub Release"]
+    M --> P
+    L --> P
+    P --> S["SHA256SUMS.txt"]
+    P --> U["Explicit in-app update check<br/>download consent<br/>restart consent"]
 ```
 
 GitHub Actions definitions live in [`.github/workflows/`](../.github/workflows/). Local and CI
-packaging use Electron Builder configuration from [`package.json`](../package.json).
+packaging use Electron Builder configuration from [`package.json`](../package.json). The release
+workflow publishes only after every native build succeeds, preventing partial releases. Operational
+versioning and recovery steps are documented in the [release guide](./releases.md). Optional
+production credentials are supplied only through GitHub Secrets as described in the
+[code-signing guide](./code-signing.md).
+
+Packaged Windows and macOS builds, plus the Linux AppImage, use `electron-updater` against the same
+GitHub Release feed. Development builds and non-AppImage Linux packages expose manual-update
+guidance instead. Downloads never start silently, and installation requires an explicit restart.
 
 ## Change checklist
 
