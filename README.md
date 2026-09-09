@@ -179,10 +179,12 @@ zoom remains a separate per-account setting.
 | macOS x64 / Apple Silicon | `.dmg`, `.zip` | Yes |
 | Linux x64 | `.AppImage`, `.deb`, `.tar.gz` | Yes |
 
-Packages remain unsigned until maintainers configure the documented GitHub Secrets. The release
-workflow supports Windows code signing and macOS Developer ID signing plus notarization without
-storing credentials in the repository. Packaged builds can check GitHub Releases and ask before
-downloading or restarting.
+The `1.1.0-beta.1` packages are intentionally published unsigned for beta testing. Windows
+SmartScreen and macOS Gatekeeper can therefore display an unknown-publisher warning. The release
+workflow already supports Windows code signing and macOS Developer ID signing plus notarization
+without storing credentials in the repository; those credentials remain deferred until after the
+beta update cycle. Packaged builds can check GitHub Releases and ask before downloading or
+restarting.
 
 ## Sign-in limitations
 

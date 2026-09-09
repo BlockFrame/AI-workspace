@@ -5,8 +5,11 @@ Notable changes to AI Workspace are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.1.0-beta.1] - 2026-09-09
+
 ### Added
 
+- Native AI Workspace application icons for Windows, macOS, and Linux packages.
 - Windows, macOS, and Linux packaging through Electron Builder and GitHub Actions.
 - Per-account provider settings, reusable context, prompt history, and local schedules.
 - Prompt template library with categories, search, variables, preview, and explicit application.
@@ -56,5 +59,6 @@ Notable changes to AI Workspace are documented here. The format follows
 - Provider switching, initial Broadcast support, local usage tracking, and settings.
 - Sandboxed renderer, context-isolated preload, and provider navigation guards.
 
-[Unreleased]: https://github.com/BlockFrame/AI-workspace/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/BlockFrame/AI-workspace/compare/v1.1.0-beta.1...HEAD
+[1.1.0-beta.1]: https://github.com/BlockFrame/AI-workspace/compare/v1.0.0...v1.1.0-beta.1
 [1.0.0]: https://github.com/BlockFrame/AI-workspace/releases/tag/v1.0.0

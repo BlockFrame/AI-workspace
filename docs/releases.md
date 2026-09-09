@@ -46,7 +46,7 @@ Only maintainers with write access can publish releases.
 2. Choose a semantic version and update `version` in `package.json` and `package-lock.json`:
 
    ```bash
-   npm version 1.1.0 --no-git-tag-version
+   npm version 1.1.0-beta.1 --no-git-tag-version
    ```
 
 3. Move the relevant changelog entries from **Unreleased** into a dated version section.
@@ -60,8 +60,8 @@ Only maintainers with write access can publish releases.
 6. Create and push the matching annotated tag:
 
    ```bash
-   git tag -a v1.1.0 -m "AI Workspace 1.1.0"
-   git push origin v1.1.0
+   git tag -a v1.1.0-beta.1 -m "AI Workspace 1.1.0-beta.1"
+   git push origin v1.1.0-beta.1
    ```
 
 The tag must exactly match `v` plus the version in `package.json`. The workflow stops before
@@ -89,10 +89,11 @@ A semantic prerelease tag such as `v1.2.0-beta.1` creates a GitHub prerelease.
 
 ## Current trust boundary
 
-Packages remain unsigned until the repository secrets in the
-[code-signing guide](./code-signing.md) are configured. Windows SmartScreen and macOS Gatekeeper can
-show warnings for unsigned packages. Production distribution should enable both signing paths
-before promoting automatic updates to external users.
+The `1.1.0-beta.1` packages are intentionally unsigned while the first end-to-end release and update
+cycle is validated. Windows SmartScreen and macOS Gatekeeper can show unknown-publisher warnings;
+testers must download only from the official repository and verify `SHA256SUMS.txt`. Signing remains
+deferred until after `beta.1` can update successfully to `beta.2`. The required production setup is
+already documented in the [code-signing guide](./code-signing.md).
 
 Packaged Windows and macOS builds, plus the Linux AppImage, expose a controlled updater in
 **Settings > Updates**:
