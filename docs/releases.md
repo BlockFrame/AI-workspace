@@ -20,21 +20,29 @@ contains `SHA256SUMS.txt`.
 
 ### Current beta validation
 
-[`v1.1.0-beta.1`](https://github.com/BlockFrame/AI-workspace/releases/tag/v1.1.0-beta.1) is the first
-cross-platform prerelease:
+[`v1.1.0-beta.2`](https://github.com/BlockFrame/AI-workspace/releases/tag/v1.1.0-beta.2) is the
+current cross-platform prerelease. Release workflow
+[`34333898221`](https://github.com/BlockFrame/AI-workspace/actions/runs/34333898221) produced and
+validated it:
 
 | Check | Status |
 | --- | --- |
-| Windows, macOS, and Linux native CI builds | Passed |
+| Windows, macOS, and Linux native CI builds | Passed for `beta.1` and `beta.2` |
+| Packaged application startup on each native runner | Passed for `beta.2` |
 | Release aggregation and SHA-256 manifest | Passed |
-| Windows x64 checksum, isolated install, launch, and removal | Passed |
-| macOS Intel and Apple Silicon launch | Awaiting real-device test |
-| Linux AppImage, DEB, and tar.gz launch | Awaiting real-host test |
-| In-app update from `beta.1` to `beta.2` | Planned |
+| Windows x64 `beta.1` checksum, isolated install, launch, and removal | Passed |
+| Windows in-app update from `beta.1` to `beta.2` | Passed |
+| macOS Intel and Apple Silicon manual installation | Awaiting real-device test |
+| Linux DEB and tar.gz manual installation | Awaiting real-host test |
 
-Starting with `beta.2`, the release workflow also starts the packaged application on each native
-runner before uploading assets. The macOS runner tests its native architecture, Linux tests the
-AppImage under Xvfb, and Windows launches the unpacked executable with an isolated profile.
+Starting with `beta.2`, the release workflow starts the packaged application on each native runner
+before uploading assets. The macOS runner tests its native architecture, Linux tests the AppImage
+under Xvfb, and Windows launches the unpacked executable with an isolated profile.
+
+The Windows update-cycle test used an isolated `beta.1` installation and profile on the Beta
+channel. It verified discovery of `1.1.0-beta.2`, user-initiated download, the
+`READY TO INSTALL` state, explicit restart, state persistence, NSIS installation, and the updated
+application reporting `AI Workspace 1.1.0-beta.2` with the Beta channel still selected.
 
 ## Verify a download
 
@@ -143,11 +151,11 @@ Windows and macOS signing variables only when the corresponding repository secre
 
 ## Current trust boundary
 
-The `1.1.0-beta.1` packages are intentionally unsigned while the first end-to-end release and update
-cycle is validated. Windows SmartScreen and macOS Gatekeeper can show unknown-publisher warnings;
-testers must download only from the official repository and verify `SHA256SUMS.txt`. Signing remains
-deferred until after `beta.1` can update successfully to `beta.2`. The required production setup is
-already documented in the [code-signing guide](./code-signing.md).
+The `1.1.0-beta.1` and `1.1.0-beta.2` packages are intentionally unsigned. Windows SmartScreen and
+macOS Gatekeeper can show unknown-publisher warnings; testers must download only from the official
+repository and verify `SHA256SUMS.txt`. The first `beta.1` to `beta.2` update cycle has passed, but
+production signing remains a separate activation decision. The required setup is documented in the
+[code-signing guide](./code-signing.md).
 
 Packaged Windows and macOS builds, plus the Linux AppImage, expose a controlled updater in
 **Settings > Updates**:

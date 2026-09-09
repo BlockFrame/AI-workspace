@@ -10,11 +10,11 @@
 [![React](https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux-343a46)](#platform-support)
-[![Beta](https://img.shields.io/badge/beta-v1.1.0--beta.1-6557de)](https://github.com/BlockFrame/AI-workspace/releases/tag/v1.1.0-beta.1)
+[![Beta](https://img.shields.io/badge/beta-v1.1.0--beta.2-6557de)](https://github.com/BlockFrame/AI-workspace/releases/tag/v1.1.0-beta.2)
 
 **A local-first desktop workspace for using multiple AI subscriptions as one repeatable research system.**
 
-[Stable download](https://github.com/BlockFrame/AI-workspace/releases/latest) · [Beta download](https://github.com/BlockFrame/AI-workspace/releases/tag/v1.1.0-beta.1) · [Get started](#quick-start) · [Features](#what-you-can-do) · [Architecture](./docs/architecture.md) · [Workflows](./docs/workflows.md) · [Security](./SECURITY.md)
+[Stable download](https://github.com/BlockFrame/AI-workspace/releases/latest) · [Beta download](https://github.com/BlockFrame/AI-workspace/releases/tag/v1.1.0-beta.2) · [Get started](#quick-start) · [Features](#what-you-can-do) · [Architecture](./docs/architecture.md) · [Workflows](./docs/workflows.md) · [Security](./SECURITY.md)
 
 </div>
 
@@ -180,17 +180,13 @@ zoom remains a separate per-account setting.
 | macOS x64 / Apple Silicon | `.dmg`, `.zip` | Yes |
 | Linux x64 | `.AppImage`, `.deb`, `.tar.gz` | Yes |
 
-The current [`v1.1.0-beta.1`](https://github.com/BlockFrame/AI-workspace/releases/tag/v1.1.0-beta.1)
-prerelease was built successfully on all three native GitHub runners. Its Windows installer has
-also passed checksum, isolated installation, launch, and removal smoke tests. macOS and Linux
-packages are published and await launch testing on their respective operating systems.
+The current [`v1.1.0-beta.2`](https://github.com/BlockFrame/AI-workspace/releases/tag/v1.1.0-beta.2)
+prerelease passed native Windows, macOS, and Linux build and packaged-application startup checks.
+The complete Windows in-app update from `beta.1` was also verified: detection, explicit download,
+state-preserving restart, installation, version advancement, and Beta-channel persistence all
+passed. Detailed evidence is recorded in the [desktop release guide](./docs/releases.md).
 
-The next validation milestone is `v1.1.0-beta.2`: its native release jobs start each packaged
-application before publishing, and the resulting release will be used to test the complete in-app
-update from `beta.1`. Maintainer publication and verification commands are documented in the
-[desktop release guide](./docs/releases.md#publish-the-prepared-beta2-candidate).
-
-The `1.1.0-beta.1` packages are intentionally published unsigned for beta testing. Windows
+The `1.1.0-beta.1` and `1.1.0-beta.2` packages are intentionally published unsigned for beta testing. Windows
 SmartScreen and macOS Gatekeeper can therefore display an unknown-publisher warning. The release
 workflow already supports Windows code signing and macOS Developer ID signing plus notarization
 without storing credentials in the repository. Signing variables are injected only when those
