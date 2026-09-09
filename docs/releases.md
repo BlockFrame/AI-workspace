@@ -64,7 +64,7 @@ Only maintainers with write access can publish releases.
 2. Choose a semantic version and update `version` in `package.json` and `package-lock.json`:
 
    ```bash
-   npm version 1.1.0-beta.1 --no-git-tag-version
+   npm version 1.1.0-beta.2 --no-git-tag-version
    ```
 
 3. Move the relevant changelog entries from **Unreleased** into a dated version section.
@@ -78,8 +78,8 @@ Only maintainers with write access can publish releases.
 6. Create and push the matching annotated tag:
 
    ```bash
-   git tag -a v1.1.0-beta.1 -m "AI Workspace 1.1.0-beta.1"
-   git push origin v1.1.0-beta.1
+   git tag -a v1.1.0-beta.2 -m "AI Workspace 1.1.0-beta.2"
+   git push origin v1.1.0-beta.2
    ```
 
 The tag must exactly match `v` plus the version in `package.json`. The workflow stops before
@@ -95,6 +95,38 @@ The release workflow then:
 6. creates one GitHub Release with generated release notes.
 
 A semantic prerelease tag such as `v1.2.0-beta.1` creates a GitHub prerelease.
+
+### Publish the prepared `beta.2` candidate
+
+The current topic branch contains the prepared `1.1.0-beta.2` candidate. From the repository root,
+run these commands in order:
+
+```bash
+git status
+git fetch origin
+git log --oneline HEAD..origin/main
+git tag --list v1.1.0-beta.2
+git push origin HEAD:agents/product-backlog-restart-ai-aggregator
+git push origin HEAD:main
+git tag -a v1.1.0-beta.2 -m "AI Workspace 1.1.0-beta.2"
+git push origin v1.1.0-beta.2
+```
+
+Before either push, `git status` must report a clean working tree,
+`git log --oneline HEAD..origin/main` must produce no output, and
+`git tag --list v1.1.0-beta.2` must produce no output. Stop if any of those checks differ. Pushing
+the topic branch preserves the work branch, pushing the same commit to `main` publishes the source,
+and pushing the annotated tag starts the release workflow.
+
+After pushing, verify that all refs identify the same commit:
+
+```bash
+git fetch origin
+git rev-parse HEAD
+git rev-parse origin/main
+git rev-parse origin/agents/product-backlog-restart-ai-aggregator
+git rev-list -n 1 v1.1.0-beta.2
+```
 
 ## Failure and rollback
 

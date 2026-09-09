@@ -185,6 +185,11 @@ prerelease was built successfully on all three native GitHub runners. Its Window
 also passed checksum, isolated installation, launch, and removal smoke tests. macOS and Linux
 packages are published and await launch testing on their respective operating systems.
 
+The next validation milestone is `v1.1.0-beta.2`: its native release jobs start each packaged
+application before publishing, and the resulting release will be used to test the complete in-app
+update from `beta.1`. Maintainer publication and verification commands are documented in the
+[desktop release guide](./docs/releases.md#publish-the-prepared-beta2-candidate).
+
 The `1.1.0-beta.1` packages are intentionally published unsigned for beta testing. Windows
 SmartScreen and macOS Gatekeeper can therefore display an unknown-publisher warning. The release
 workflow already supports Windows code signing and macOS Developer ID signing plus notarization
