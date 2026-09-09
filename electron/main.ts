@@ -4260,6 +4260,9 @@ async function createMainWindow(): Promise<void> {
     backgroundColor: "#0b0d12",
     title: "AI Workspace",
     autoHideMenuBar: true,
+    ...(!app.isPackaged
+      ? { icon: path.join(app.getAppPath(), "build", "icon.png") }
+      : {}),
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,

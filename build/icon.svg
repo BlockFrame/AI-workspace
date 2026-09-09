@@ -1,40 +1,31 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
   <defs>
-    <linearGradient id="background" x1="128" y1="96" x2="896" y2="928" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#8274f4"/>
-      <stop offset=".52" stop-color="#5548cc"/>
-      <stop offset="1" stop-color="#319874"/>
+    <linearGradient id="background" x1="112" y1="92" x2="914" y2="934" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7f70ef"/>
+      <stop offset=".52" stop-color="#5146c8"/>
+      <stop offset="1" stop-color="#2d8f70"/>
     </linearGradient>
-    <linearGradient id="highlight" x1="250" y1="216" x2="770" y2="824" gradientUnits="userSpaceOnUse">
+    <linearGradient id="orbit" x1="260" y1="220" x2="784" y2="824" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#ffffff"/>
-      <stop offset="1" stop-color="#d8fff0"/>
+      <stop offset="1" stop-color="#c9ffeb"/>
     </linearGradient>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="32" stdDeviation="36" flood-color="#11152b" flood-opacity=".34"/>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="24" stdDeviation="28" flood-color="#11152b" flood-opacity=".38"/>
     </filter>
   </defs>
   <rect width="1024" height="1024" rx="224" fill="#11152b"/>
   <rect x="64" y="64" width="896" height="896" rx="196" fill="url(#background)"/>
   <circle cx="808" cy="212" r="184" fill="#ffffff" opacity=".08"/>
   <circle cx="190" cy="830" r="224" fill="#65e1af" opacity=".10"/>
-  <g filter="url(#shadow)">
-    <path
-      d="M286 730 492 270c8-18 32-18 40 0l206 460"
-      fill="none"
-      stroke="url(#highlight)"
-      stroke-width="76"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    />
-    <path
-      d="M370 570h284"
-      fill="none"
-      stroke="url(#highlight)"
-      stroke-width="68"
-      stroke-linecap="round"
-    />
+  <g fill="none" stroke="url(#orbit)" stroke-linecap="round" stroke-width="54" filter="url(#shadow)">
+    <ellipse cx="512" cy="512" rx="314" ry="150" transform="rotate(-28 512 512)"/>
+    <ellipse cx="512" cy="512" rx="314" ry="150" transform="rotate(32 512 512)"/>
+    <ellipse cx="512" cy="512" rx="314" ry="150" transform="rotate(90 512 512)"/>
   </g>
-  <circle cx="286" cy="730" r="25" fill="#ffffff"/>
-  <circle cx="738" cy="730" r="25" fill="#d8fff0"/>
-  <circle cx="512" cy="270" r="25" fill="#ffffff"/>
+  <circle cx="512" cy="512" r="92" fill="#11152b" opacity=".28"/>
+  <circle cx="512" cy="512" r="70" fill="#ffffff"/>
+  <circle cx="512" cy="512" r="34" fill="#58c99d"/>
+  <circle cx="249" cy="339" r="42" fill="#ffffff"/>
+  <circle cx="777" cy="686" r="42" fill="#d6fff0"/>
+  <circle cx="512" cy="825" r="42" fill="#ffffff"/>
 </svg>
