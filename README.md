@@ -186,13 +186,17 @@ The complete Windows in-app update from `beta.1` was also verified: detection, e
 state-preserving restart, installation, version advancement, and Beta-channel persistence all
 passed. Detailed evidence is recorded in the [desktop release guide](./docs/releases.md).
 
-The `1.1.0-beta.1` and `1.1.0-beta.2` packages are intentionally published unsigned for beta testing. Windows
-SmartScreen and macOS Gatekeeper can therefore display an unknown-publisher warning. The release
-workflow already supports Windows code signing and macOS Developer ID signing plus notarization
-without storing credentials in the repository. Signing variables are injected only when those
-secrets exist, so unsigned beta builds remain deterministic; credentials remain deferred until
-after the beta update cycle. Packaged builds can check GitHub Releases and ask before downloading
-or restarting.
+On some Windows systems, `beta.2` can start its background processes without showing the main
+window. The prepared `beta.3` candidate fixes that startup path and adds a CI assertion for an
+actual visible window. Until `beta.3` is published, affected testers can close the background
+processes from Task Manager and continue using a development build.
+
+The beta packages are intentionally published unsigned for testing. Windows SmartScreen and macOS
+Gatekeeper can therefore display an unknown-publisher warning. The release workflow already
+supports Windows code signing and macOS Developer ID signing plus notarization without storing
+credentials in the repository. Signing variables are injected only when those secrets exist, so
+unsigned beta builds remain deterministic; credentials remain deferred until after the beta update
+cycle. Packaged builds can check GitHub Releases and ask before downloading or restarting.
 
 ## Sign-in limitations
 

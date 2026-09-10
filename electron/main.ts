@@ -4281,7 +4281,13 @@ async function createMainWindow(): Promise<void> {
     return { action: "deny" };
   });
 
-  mainWindow.once("ready-to-show", () => mainWindow?.show());
+  const showMainWindow = () => {
+    if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.isVisible()) {
+      mainWindow.show();
+    }
+  };
+  mainWindow.once("ready-to-show", showMainWindow);
+  mainWindow.webContents.once("did-finish-load", showMainWindow);
   mainWindow.on("focus", () => beginActiveUsage());
   mainWindow.on("blur", () => {
     void flushActiveUsage().catch((error: unknown) => {
@@ -4323,6 +4329,7 @@ if (!hasSingleInstanceLock) {
       if (mainWindow.isMinimized()) {
         mainWindow.restore();
       }
+      mainWindow.show();
       mainWindow.focus();
     }
   });

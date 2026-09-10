@@ -44,6 +44,12 @@ channel. It verified discovery of `1.1.0-beta.2`, user-initiated download, the
 `READY TO INSTALL` state, explicit restart, state persistence, NSIS installation, and the updated
 application reporting `AI Workspace 1.1.0-beta.2` with the Beta channel still selected.
 
+Post-release testing found that `beta.2` can remain invisible on Windows when Electron does not emit
+`ready-to-show`: the application and renderer processes remain healthy, but the main window has no
+native handle. The `beta.3` candidate also shows the window after the renderer finishes loading and
+forces an existing window visible when a second instance is launched. Its Windows CI smoke test now
+requires a non-zero native window handle, so process liveness alone is no longer considered success.
+
 ## Verify a download
 
 Run the command from the folder containing both the package and `SHA256SUMS.txt`.
